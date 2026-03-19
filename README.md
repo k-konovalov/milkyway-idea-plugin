@@ -1,4 +1,4 @@
-# milkyway-idea-plugin
+# Milkyway
 IDEA plugin for visualise Gradle module dependencies as a graph on demand during build.gradle editing.
 
 ## Main idea
