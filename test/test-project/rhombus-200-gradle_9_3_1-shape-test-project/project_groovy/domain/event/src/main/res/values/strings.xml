@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="string_event_1">String 1 for module event</string>
+    <string name="string_event_2">String 2 for module event</string>
+    <string name="string_event_3">String 3 for module event</string>
+    <string name="string_event_4">String 4 for module event</string>
+    <string name="string_event_5">String 5 for module event</string>
+    <string name="string_event_6">String 6 for module event</string>
+    <string name="string_event_7">String 7 for module event</string>
+    <string name="string_event_8">String 8 for module event</string>
+    <string name="string_event_9">String 9 for module event</string>
+    <string name="string_event_10">String 10 for module event</string>
+    <string name="string_event_11">String 11 for module event</string>
+    <string name="string_event_12">String 12 for module event</string>
+    <string name="string_event_13">String 13 for module event</string>
+    <string name="string_event_14">String 14 for module event</string>
+    <string name="string_event_15">String 15 for module event</string>
+    <string name="string_event_16">String 16 for module event</string>
+    <string name="string_event_17">String 17 for module event</string>
+    <string name="string_event_18">String 18 for module event</string>
+    <string name="string_event_19">String 19 for module event</string>
+    <string name="string_event_20">String 20 for module event</string>
+    <string name="string_event_21">String 21 for module event</string>
+    <string name="string_event_22">String 22 for module event</string>
+    <string name="string_event_23">String 23 for module event</string>
+    <string name="string_event_24">String 24 for module event</string>
+    <string name="string_event_25">String 25 for module event</string>
+            </resources>

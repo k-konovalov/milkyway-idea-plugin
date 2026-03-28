@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="string_alarm_1">String 1 for module alarm</string>
+    <string name="string_alarm_2">String 2 for module alarm</string>
+    <string name="string_alarm_3">String 3 for module alarm</string>
+    <string name="string_alarm_4">String 4 for module alarm</string>
+    <string name="string_alarm_5">String 5 for module alarm</string>
+    <string name="string_alarm_6">String 6 for module alarm</string>
+    <string name="string_alarm_7">String 7 for module alarm</string>
+    <string name="string_alarm_8">String 8 for module alarm</string>
+    <string name="string_alarm_9">String 9 for module alarm</string>
+    <string name="string_alarm_10">String 10 for module alarm</string>
+    <string name="string_alarm_11">String 11 for module alarm</string>
+    <string name="string_alarm_12">String 12 for module alarm</string>
+    <string name="string_alarm_13">String 13 for module alarm</string>
+    <string name="string_alarm_14">String 14 for module alarm</string>
+    <string name="string_alarm_15">String 15 for module alarm</string>
+    <string name="string_alarm_16">String 16 for module alarm</string>
+    <string name="string_alarm_17">String 17 for module alarm</string>
+    <string name="string_alarm_18">String 18 for module alarm</string>
+    <string name="string_alarm_19">String 19 for module alarm</string>
+    <string name="string_alarm_20">String 20 for module alarm</string>
+    <string name="string_alarm_21">String 21 for module alarm</string>
+    <string name="string_alarm_22">String 22 for module alarm</string>
+    <string name="string_alarm_23">String 23 for module alarm</string>
+    <string name="string_alarm_24">String 24 for module alarm</string>
+    <string name="string_alarm_25">String 25 for module alarm</string>
+            </resources>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+            <resources>
+                <string name="string_metric_1">String 1 for module metric</string>
+    <string name="string_metric_2">String 2 for module metric</string>
+    <string name="string_metric_3">String 3 for module metric</string>
+    <string name="string_metric_4">String 4 for module metric</string>
+    <string name="string_metric_5">String 5 for module metric</string>
+    <string name="string_metric_6">String 6 for module metric</string>
+    <string name="string_metric_7">String 7 for module metric</string>
+    <string name="string_metric_8">String 8 for module metric</string>
+    <string name="string_metric_9">String 9 for module metric</string>
+    <string name="string_metric_10">String 10 for module metric</string>
+    <string name="string_metric_11">String 11 for module metric</string>
+    <string name="string_metric_12">String 12 for module metric</string>
+    <string name="string_metric_13">String 13 for module metric</string>
+    <string name="string_metric_14">String 14 for module metric</string>
+    <string name="string_metric_15">String 15 for module metric</string>
+    <string name="string_metric_16">String 16 for module metric</string>
+    <string name="string_metric_17">String 17 for module metric</string>
+    <string name="string_metric_18">String 18 for module metric</string>
+    <string name="string_metric_19">String 19 for module metric</string>
+    <string name="string_metric_20">String 20 for module metric</string>
+    <string name="string_metric_21">String 21 for module metric</string>
+    <string name="string_metric_22">String 22 for module metric</string>
+    <string name="string_metric_23">String 23 for module metric</string>
+    <string name="string_metric_24">String 24 for module metric</string>
+    <string name="string_metric_25">String 25 for module metric</string>
+            </resources>
