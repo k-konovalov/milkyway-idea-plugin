@@ -1,0 +1,12 @@
+digraph G {
+"feature:post" -> "core:push";
+"feature:post" -> "core:contact";
+"feature:post" -> "core:login";
+"feature:post" -> "core:identity";
+"feature:post" -> "core:checkout";
+"feature:post" -> "core:cart";
+"feature:post" -> "core:user";
+"feature:post" -> "core:profile";
+"feature:post" -> "core:feed";
+"feature:post" -> "core:comment";
+}
