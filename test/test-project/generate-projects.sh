@@ -3,9 +3,9 @@
 #chmod 0757 projectGenerator
 
 module_shapes=("triangle" "rhombus" "flat" "rectangle" "middle_bottleneck" "inverse_triangle")
-module_sizes=(150 200 130 160 210 110)
+module_sizes=(20 20 10 20 20 20)
 gradle_version=("gradle_9_4_1" "gradle_9_3_1" "gradle_9_2_1" "gradle_8_14_4" "gradle_8_13" "gradle_8_12_1")
-layers=10 # DAG/layer's depth
+layers=5 # DAG/layer's depth
 language=both # kts & grovy
 
 function generate_projects() {
