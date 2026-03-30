@@ -8,16 +8,41 @@ gradle_version=("gradle_9_4_1" "gradle_9_3_1" "gradle_9_2_1" "gradle_8_14_4" "gr
 layers=10 # DAG/layer's depth
 language=both # kts & grovy
 
-for ((i = 0; i < ${#module_shapes[@]}; i++)) do
-  project_name="${module_shapes[$i]}-${module_sizes[$i]}-${gradle_version[$i]}-shape-test-project"
-  echo "Generate project $project_name"
-  ./projectGenerator generate-project \
-                      --project-name "$project_name" \
-                      --shape "${module_shapes[$i]}" \
-                      --modules "${module_sizes[$i]}" \
-                      --gradle "${gradle_version[$i]}" \
-                      --output-dir "./$project_name" \
-                      --language "$language" \
-                      --layers "$layers" > /dev/null && \
-                      echo "Project was $project_name generated"
-done
+function generate_projects() {
+  echo "-------- Generate Projects --------"
+  for ((i = 0; i < ${#module_shapes[@]}; i++)) do
+    project_name="${module_shapes[$i]}-${module_sizes[$i]}-${gradle_version[$i]}-shape-test-project"
+    echo "Generate project $project_name"
+    ./projectGenerator generate-project \
+                        --project-name "$project_name" \
+                        --shape "${module_shapes[$i]}" \
+                        --modules "${module_sizes[$i]}" \
+                        --gradle "${gradle_version[$i]}" \
+                        --output-dir "./$project_name" \
+                        --language "$language" \
+                        --layers "$layers" > /dev/null && \
+                        echo "Project was $project_name generated"
+  done
+}
+
+function make_graphs() {
+  echo "-------- Make Graphs --------"
+  mkdir -p graphs
+  for ((i = 0; i < ${#module_shapes[@]}; i++)) do
+    project_name="${module_shapes[$i]}-${module_sizes[$i]}-${gradle_version[$i]}-shape-test-project"
+    echo "Generating graph for project $project_name"
+    dot -Tpng "./$project_name/project_groovy/graph.dot" -o \
+      "./graphs/$project_name.graph.png"
+  done
+}
+
+main() {
+  arg=$1
+  case $arg in
+    "--generate-projects") generate_projects ;;
+    "--generate-graphs") make_graphs ;;
+    *) echo "Unknown command $arg"
+  esac
+}
+
+main "$@"
