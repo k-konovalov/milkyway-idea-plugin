@@ -11,5 +11,16 @@
     <extensions defaultExtensionNs="com.intellij">
         <toolWindow factoryClass="org.jetbrains.plugins.template.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
         <postStartupActivity implementation="org.jetbrains.plugins.template.startup.MyProjectActivity" />
+        <postStartupActivity implementation="org.jetbrains.plugins.template.startup.GradleReaderStartupActivity" />
+        <fileEditorProvider implementation="org.jetbrains.plugins.template.provider.SettingsGradleFileEditorProvider" />
     </extensions>
+    <actions>
+        <action id="org.jetbrains.plugins.template.action.BuildGraphAction"
+                class="org.jetbrains.plugins.template.action.BuildGraphAction"
+                text="Search Settings.Gradle[.Kts]"
+                description="Scan gradle files">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl M"/>
+        </action>
+    </actions>
 </idea-plugin>
