@@ -4,7 +4,6 @@ import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.thisLogger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VfsUtilCore
-import com.github.milkyway.plugin.MyBundle
 
 @Service(Service.Level.PROJECT)
 class MyProjectService(private val project: Project) {
