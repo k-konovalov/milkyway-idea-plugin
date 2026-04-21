@@ -1,0 +1,12 @@
+autoCloseIssue: true
+autoDeleteBranch: true
+branchName: 'feature/${issue.number}-${issue.title,}' # ex: feature/15-lower-case
+copyIssueAssigneeToPR: true
+copyIssueDescriptionToPR: true
+copyIssueLabelsToPR: true
+copyIssueMilestoneToPR: true
+copyIssueProjectsToPR: true
+gitSafeReplacementChar: '-'
+mode: immediate
+openDraftPR: true
+prSkipCI: true
