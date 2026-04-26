@@ -39,7 +39,6 @@ class SettingsGradlePreviewEditor(
         document.addDocumentListener(documentListener)
     }
 
-    // TODO: Add File Parsing and Building Graph
     private fun updatePreview(text: String) {
         label.text = "<html><pre>${text}</pre></html>"
     }
