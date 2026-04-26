@@ -1,0 +1,27 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>com.github.milkyway.plugin</id>
+    <name>Mikyway Plugin</name>
+    <vendor>Milkyway</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>org.jetbrains.plugins.gradle</depends>
+
+    <resource-bundle>messages.MyBundle</resource-bundle>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow factoryClass="com.github.milkyway.plugin.toolWindow.MyToolWindowFactory" id="MyToolWindow"/>
+        <postStartupActivity implementation="com.github.milkyway.plugin.startup.MyProjectActivity" />
+        <postStartupActivity implementation="com.github.milkyway.plugin.startup.GradleReaderStartupActivity" />
+        <fileEditorProvider implementation="com.github.milkyway.plugin.provider.SettingsGradleFileEditorProvider" />
+    </extensions>
+    <actions>
+        <action id="com.github.milkyway.plugin.action.BuildGraphAction"
+                class="com.github.milkyway.plugin.action.BuildGraphAction"
+                text="Search Settings.Gradle[.Kts]"
+                description="Scan gradle files">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+            <keyboard-shortcut keymap="$default" first-keystroke="ctrl M"/>
+        </action>
+    </actions>
+</idea-plugin>

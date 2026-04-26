@@ -8,6 +8,7 @@ pluginManagement {
 }
 plugins {
     id("com.fueledbycaffeine.spotlight") version "1.4.1"
+    id("org.gradle.toolchains.foojay-resolver-convention") version "0.8.0"
 }
 rootProject.name = "triangle-20-gradle_9_4_1-shape-test-project"
 
