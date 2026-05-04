@@ -1,5 +1,28 @@
 rootProject.name = "MilkyWay"
 
-plugins {
-    id("org.gradle.toolchains.foojay-resolver-convention") version "1.0.0"
+pluginManagement {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+
+        maven {
+            url = uri("https://repo.gradle.org/gradle/libs-releases")
+        }
+    }
 }
+
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+
+        maven {
+            url = uri("https://repo.gradle.org/gradle/libs-releases")
+        }
+    }
+}
+
+include(":core")
+include(":gradle-plugin")
+include(":idea-plugin")

@@ -1,26 +1,10 @@
 plugins {
-    kotlin("jvm") version "2.1.21"
-    `java-gradle-plugin`
+    kotlin("jvm") version "2.1.21" apply false
+    kotlin("plugin.serialization") version "2.1.21" apply false
+    id("org.jetbrains.intellij.platform") version "2.16.0" apply false
 }
 
-group = providers.gradleProperty("pluginGroup").get()
-version = providers.gradleProperty("pluginVersion").get()
-
-
-kotlin {
-    jvmToolchain(17)
-}
-
-repositories {
-    mavenCentral()
-    gradlePluginPortal()
-}
-
-gradlePlugin {
-    plugins {
-        create("printDependencies") {
-            id = "com.github.milkyway"
-            implementationClass = "com.github.milkyway.MilkyWayPlugin"
-        }
-    }
+allprojects {
+    group = "com.github.milkyway"
+    version = "0.1.0"
 }
