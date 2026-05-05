@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>MilkyWay</title>
+    <meta charset="utf-8">
+    <style>
+        {{MILKYWAY_CSS}}
+    </style>
+</head>
+<body>
+<div id="toolbar">
+    <button onclick="resetGraph()">Reset</button>
+
+    <button class="iconButton" title="Rotate left 90°" onclick="rotateGraph(-90)">↺</button>
+    <button class="iconButton" title="Rotate right 90°" onclick="rotateGraph(90)">↻</button>
+
+    <label class="toolbarGroup">
+        <input id="criticalPathCheckbox" type="checkbox" onchange="applyCriticalPathVisibility()">
+        <span>Show critical path</span>
+    </label>
+
+    <label class="toolbarGroup">
+        <input id="groupCheckbox" type="checkbox" onchange="applyGroupVisibility()">
+        <span>Show groups</span>
+    </label>
+
+</div>
+
+<div id="legend" onclick="toggleLegend()">
+    <div id="legendHeader">
+        <span>Graph summary</span>
+        <button id="legendToggle" type="button">+</button>
+    </div>
+
+    <div id="legendBody" style="display: none;">
+        <div class="legendRow">
+            <span class="legendLabel">Nodes</span>
+            <span class="legendValue" id="nodeCount">–</span>
+        </div>
+
+        <div class="legendRow">
+            <span class="legendLabel">Edges</span>
+            <span class="legendValue" id="edgeCount">–</span>
+        </div>
+
+        <div class="legendRow">
+            <span class="legendLabel">Critical path length</span>
+            <span class="legendValue" id="criticalPathLength">–</span>
+        </div>
+
+        <div class="legendMarkerRow">
+            <span class="marker markerRegular"></span>
+            <span>Regular module</span>
+        </div>
+
+        <div class="legendMarkerRow">
+            <span class="marker markerCritical"></span>
+            <span>Critical path module</span>
+        </div>
+    </div>
+</div>
+
+<div id="renderMetrics" aria-label="Render time">
+    Render: <span id="renderTime">–</span> ms
+</div>
+
+<div id="cy"></div>
+<div id="groupOverlay"></div>
+
+<script>
+    {{CYTOSCAPE_JS}}
+</script>
+
+<script>
+    window.__MILKYWAY_REPORT__ = {{MILKYWAY_REPORT_JSON}};
+</script>
+
+<script>
+    {{MILKYWAY_VIEW_JS}}
+</script>
+</body>
+</html>
