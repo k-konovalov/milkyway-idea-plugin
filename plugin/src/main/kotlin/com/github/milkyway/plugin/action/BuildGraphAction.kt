@@ -6,6 +6,7 @@ import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.github.milkyway.plugin.services.MyProjectService
+import com.github.milkyway.plugin.services.shape.GraphShapeMatcher
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -20,6 +21,7 @@ class BuildGraphAction : AnAction() {
         """(\w+)\s*\(\s*project\s*\(\s*["'](:[^"']+)["']\s*\)\s*\)""",
         setOf(RegexOption.DOT_MATCHES_ALL)
     )
+    private val graphShapeMatcher = GraphShapeMatcher()
 
     override fun actionPerformed(actionEvent: AnActionEvent) {
         val project: Project = actionEvent.project ?: return
@@ -44,6 +46,11 @@ class BuildGraphAction : AnAction() {
             // Dependency Graph
             val depDot = dependencyGraph.toDot()
             saveToDot(project, depDot, "dependencyGraph.dot")
+            val matchReport = graphShapeMatcher.calculate(dependencyGraph)
+            println("--------------")
+            println("--------------")
+            println("Match Report: ")
+            println(matchReport)
 
             ApplicationManager.getApplication().invokeLater {
                 println("before build graph")
