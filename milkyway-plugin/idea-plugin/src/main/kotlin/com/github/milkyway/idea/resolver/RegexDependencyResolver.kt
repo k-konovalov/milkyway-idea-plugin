@@ -1,16 +1,16 @@
-package com.github.milkyway.idea.traverser
+package com.github.milkyway.idea.resolver
 
-import com.github.milkyway.core.contract.traverser.DependencyTraverser
 import com.intellij.openapi.project.Project
 import com.github.milkyway.core.models.DependencyGraph
+import com.github.milkyway.idea.resolver.DependencyResolver
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
 
-class RegexTraverser(
+class RegexDependencyResolver(
     private val project: Project
-): DependencyTraverser {
+): DependencyResolver {
     companion object {
         private val includeRegex = Regex("""include\s*\(["'](:[^"']+)["']\s*\)""")
         private val dependencyRegex = Regex(
@@ -19,7 +19,7 @@ class RegexTraverser(
         )
     }
 
-    override fun traverse(): DependencyGraph {
+    override fun resolve(): DependencyGraph {
         val dependencyGraph = ReadAction.compute<DependencyGraph, Throwable> {
             buildDependencyGraph(project)
         }

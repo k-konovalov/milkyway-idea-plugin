@@ -1,10 +1,10 @@
-package com.github.milkyway.idea.traverser
+package com.github.milkyway.idea.resolver
 
 import com.github.milkyway.core.MilkyWayConstants
-import com.github.milkyway.core.contract.traverser.DependencyTraverser
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.mapper.GraphDependencyMapper
 import com.github.milkyway.core.models.DependencyGraphDto
+import com.github.milkyway.idea.resolver.DependencyResolver
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings
@@ -19,10 +19,10 @@ import java.nio.file.Files
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.atomic.AtomicReference
 
-class GradleTraverser(
+class GradleDependencyResolver(
     private val ideaProject: Project,
     private val projectDir: File,
-): DependencyTraverser {
+): DependencyResolver {
     private companion object {
         const val REPORT_DIR = "build/reports/milkyway"
         const val MILKYWAY_INIT_GRADLE_FILE = "milkyway-init.gradle"
@@ -34,7 +34,7 @@ class GradleTraverser(
         ignoreUnknownKeys = true
     }
 
-    override fun traverse(): DependencyGraph {
+    override fun resolve(): DependencyGraph {
         val reportDir = File(projectDir, REPORT_DIR)
         val graphFile = reportDir.resolve(MilkyWayConstants.GRADLE_DEPENDENCY_GRAPH_FILE)
         val initScript = createInitScript()
