@@ -29,6 +29,12 @@ class DependencyGraph {
         adjacency.getValue(from).add(to)
     }
 
+    fun addEdge(fromId: String, toId: String) {
+        val from = Node(fromId)
+        val to = Node(toId)
+        addEdge(from, to)
+    }
+
     fun edgeCount(): Int {
         return adjacency.values.sumOf { it.size }
     }
