@@ -1,10 +1,12 @@
 package com.github.milkyway.plugin.action
 
+import com.github.milkyway.plugin.model.DependencyGraph
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.components.service
 import com.intellij.openapi.project.Project
 import com.github.milkyway.plugin.services.MyProjectService
+import com.github.milkyway.plugin.services.shape.GraphShapeMatcher
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.externalSystem.model.ProjectSystemId
@@ -19,18 +21,36 @@ class BuildGraphAction : AnAction() {
         """(\w+)\s*\(\s*project\s*\(\s*["'](:[^"']+)["']\s*\)\s*\)""",
         setOf(RegexOption.DOT_MATCHES_ALL)
     )
+    private val graphShapeMatcher = GraphShapeMatcher()
 
     override fun actionPerformed(actionEvent: AnActionEvent) {
         val project: Project = actionEvent.project ?: return
         val service = project.service<MyProjectService>()
 
         ApplicationManager.getApplication().executeOnPooledThread {
+            // Raw Regex Graph
             val graph = ReadAction.compute<Map<String, List<String>>, Throwable> {
                 buildGraph(project)
             }
 
+            // Dependency Graph
+            val dependencyGraph = ReadAction.compute<DependencyGraph, Throwable> {
+                buildDependencyGraph(project)
+            }
+            dependencyGraph.computeArticulationPoints()
+
+            // Raw Regex Graph
             val dot = toDot(graph)
             saveToDot(project, dot)
+
+            // Dependency Graph
+            val depDot = dependencyGraph.toDot()
+            saveToDot(project, depDot, "dependencyGraph.dot")
+            val matchReport = graphShapeMatcher.calculate(dependencyGraph)
+            println("--------------")
+            println("--------------")
+            println("Match Report: ")
+            println(matchReport)
 
             ApplicationManager.getApplication().invokeLater {
                 println("before build graph")
@@ -42,7 +62,7 @@ class BuildGraphAction : AnAction() {
         println("After build graph")
     }
 
-    fun saveToDot(project: Project, content: String) {
+    fun saveToDot(project: Project, content: String, filename: String = "dependency.dot") {
         val settingsFile = findSettingsFile(project)
         val targetDir = if (settingsFile != null) {
             settingsFile.parent
@@ -50,7 +70,7 @@ class BuildGraphAction : AnAction() {
             project.baseDir
         } ?: return
 
-        val file = java.io.File(targetDir.path, "dependencies.dot")
+        val file = java.io.File(targetDir.path, filename)
         file.writeText(content)
     }
 
@@ -112,6 +132,41 @@ class BuildGraphAction : AnAction() {
             }
         }
         return result
+    }
+
+    fun buildDependencyGraph(project: Project): DependencyGraph {
+        val dependencyGraph = DependencyGraph()
+        val result = mutableMapOf<String, MutableList<String>>()
+        val settingsFile = findSettingsFile(project)
+        val includeModules = settingsFile
+            ?.readText()
+            ?.let {parseSettingsDeps(it).toSet()}
+            ?: emptySet()
+
+        val gradleFiles = findGradleFiles(project)
+        for (file in gradleFiles) {
+            val text = file.readText()
+            val moduleName = moduleNameFromFile(project, file)
+            val dependencies = parseModuleDeps(text).map { it.second }
+            dependencies.forEach { dependencyGraph.addEdge(moduleName, it) }
+            result.computeIfAbsent(moduleName) { mutableListOf() }
+                .addAll(dependencies)
+        }
+        if (includeModules.isNotEmpty()) {
+            var filtered = result
+                .filterKeys { it in includeModules || it == ":" }
+                .mapValues { (_, dependencies) ->
+                    dependencies.filter { it in includeModules }
+                }
+            val referenceModules = filtered.values.flatten().toSet()
+            filtered = filtered.filter { (module, dependencies) ->
+                dependencies.isNotEmpty() && module in referenceModules
+            }
+            filtered.forEach { (moduleName, dependencies) ->
+                dependencies.forEach { dependencyGraph.addEdge(moduleName, it) }
+            }
+        }
+        return dependencyGraph
     }
 
     fun normalizeModuleNames(module: String): String {
