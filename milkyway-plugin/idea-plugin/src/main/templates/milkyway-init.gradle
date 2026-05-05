@@ -1,0 +1,18 @@
+initscript {
+    repositories {
+        mavenLocal()
+        google()
+        mavenCentral()
+        gradlePluginPortal()
+    }
+
+    dependencies {
+        classpath "com.github.milkyway:gradle-plugin:@GRADLE_PLUGIN_VERSION@"
+    }
+}
+
+gradle.beforeProject { project ->
+    if (project == project.rootProject) {
+        project.pluginManager.apply(com.github.milkyway.gradle.MilkyWayPlugin)
+    }
+}

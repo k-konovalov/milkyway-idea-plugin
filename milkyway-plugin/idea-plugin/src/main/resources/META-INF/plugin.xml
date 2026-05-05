@@ -1,0 +1,28 @@
+<!-- Plugin Configuration File. Read more: https://plugins.jetbrains.com/docs/intellij/plugin-configuration-file.html -->
+<idea-plugin>
+    <id>com.github.milkyway</id>
+    <name>MilkyWay Plugin</name>
+    <vendor>Hello World Technologies</vendor>
+
+    <depends>com.intellij.modules.platform</depends>
+    <depends>com.intellij.gradle</depends>
+
+    <actions>
+        <action
+                id="MilkyWay.AnalyzeDependencies"
+                class="com.github.milkyway.idea.AnalyzeDependenciesAction"
+                text="Analyze Gradle Dependencies"
+                description="Analyze Gradle module dependency graph">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </action>
+    </actions>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <toolWindow
+                id="MilkyWay"
+                anchor="right"
+                icon="/icons/milkyway.svg"
+                factoryClass="com.github.milkyway.idea.toolwindow.MilkyWayToolWindowFactory"/>
+    </extensions>
+
+</idea-plugin>
