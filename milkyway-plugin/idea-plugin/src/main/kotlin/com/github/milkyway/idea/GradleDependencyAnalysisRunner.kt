@@ -1,6 +1,9 @@
 package com.github.milkyway.idea
 
 import com.github.milkyway.core.MilkyWayConstants
+import com.github.milkyway.core.mapper.GraphDependencyMapper
+import com.github.milkyway.core.models.DependencyGraphDto
+import com.github.milkyway.idea.cytoscape.ReportBuilder
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings
@@ -8,6 +11,7 @@ import com.intellij.openapi.externalSystem.service.execution.ProgressExecutionMo
 import com.intellij.openapi.externalSystem.task.TaskCallback
 import com.intellij.openapi.externalSystem.util.ExternalSystemUtil
 import com.intellij.openapi.project.Project
+import kotlinx.serialization.json.Json
 import org.jetbrains.plugins.gradle.util.GradleConstants
 import java.io.File
 import java.nio.file.Files
@@ -23,9 +27,15 @@ class GradleDependencyAnalysisRunner(
         const val MILKYWAY_INIT_GRADLE_FILE = "milkyway-init.gradle"
     }
 
+    private val json = Json {
+        prettyPrint = true
+        encodeDefaults = true
+        ignoreUnknownKeys = true
+    }
+
     fun run(projectDir: File): String {
         val reportDir = File(projectDir, REPORT_DIR)
-        val cytoscapeFile = reportDir.resolve(MilkyWayConstants.CYTOSCAPE_REPORT_FILE)
+        val graphFile = reportDir.resolve(MilkyWayConstants.GRADLE_DEPENDENCY_GRAPH_FILE)
         val initScript = createInitScript()
 
         if (reportDir.exists()) {
@@ -35,11 +45,15 @@ class GradleDependencyAnalysisRunner(
         try {
             runDependencyAnalysis(projectDir, initScript)
 
-            if (!cytoscapeFile.exists()) {
-                error("Cytoscape file was not generated: ${cytoscapeFile.absolutePath}")
+            if (!graphFile.exists()) {
+                error("Dependency graph file was not generated: ${graphFile.absolutePath}")
             }
 
-            return cytoscapeFile.readText()
+            val graphDto = json.decodeFromString<DependencyGraphDto>(graphFile.readText())
+            val graph = GraphDependencyMapper.fromDto(graphDto)
+            val cytoscapeReport = ReportBuilder().build(graph)
+
+            return json.encodeToString(cytoscapeReport)
         } finally {
             initScript.delete()
         }
