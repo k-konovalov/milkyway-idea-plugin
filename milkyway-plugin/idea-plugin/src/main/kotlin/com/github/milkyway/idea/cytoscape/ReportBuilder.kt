@@ -1,29 +1,48 @@
 package com.github.milkyway.idea.cytoscape
 
+import com.github.milkyway.core.analyzer.ArticulationPointsAnalyzer
 import com.github.milkyway.core.analyzer.CriticalPathAnalyzer
 import com.github.milkyway.core.models.CriticalPathsResult
 import com.github.milkyway.core.models.CytoscapeDataDto
 import com.github.milkyway.core.models.CytoscapeElementDto
 import com.github.milkyway.core.models.CytoscapeGroupDto
 import com.github.milkyway.core.models.CytoscapeReportDto
+import com.github.milkyway.core.models.CytoscapeShapeSimilarityDto
 import com.github.milkyway.core.models.CytoscapeSummaryDto
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.models.Node
+import com.github.milkyway.core.models.Shape
+import com.github.milkyway.core.shape.GraphShapeMatcher
 
 class ReportBuilder {
 
     fun build(graph: DependencyGraph): CytoscapeReportDto {
         val analyzer = CriticalPathAnalyzer()
-        val result = analyzer.findCriticalPaths(graph)
+        // Critical Path
+        val criticalPathResult = analyzer.findCriticalPaths(graph)
+        // Articulation Points
+        val articulationPointsAnalyzer = ArticulationPointsAnalyzer(graph)
+        val articulationPoints = articulationPointsAnalyzer.findArticulationPoints()
+        // Shape Match
+        val graphShapeMatcher = GraphShapeMatcher()
+        val matchResult = graphShapeMatcher.calculate(graph)
 
-        return buildCytoscapeReport(result, graph)
+        return buildCytoscapeReport(
+            criticalPathResult,
+            articulationPoints,
+            matchResult,
+            graph
+        )
     }
 
     private fun buildCytoscapeReport(
-        result: CriticalPathsResult,
+        criticalPathsResult: CriticalPathsResult,
+        articulationPointsResult: Set<Node>,
+        matchResult: Map<Shape, Double>,
         graph: DependencyGraph,
     ): CytoscapeReportDto {
-        val criticalPaths = result.expandedPaths
+        // region Critical Path
+        val criticalPaths = criticalPathsResult.expandedPaths
             .map { path ->
                 path.flatMap { componentNodes -> componentNodes }
             }
@@ -32,7 +51,7 @@ class ReportBuilder {
             .flatten()
             .toSet()
 
-        val criticalEdges = result.expandedPaths
+        val criticalEdges = criticalPathsResult.expandedPaths
             .flatMap { path ->
                 path.zipWithNext().flatMap { (fromComponentNodes, toComponentNodes) ->
                     graph.adjacency.flatMap { (from, targets) ->
@@ -45,7 +64,8 @@ class ReportBuilder {
                 }
             }
             .toSet()
-
+        // endregion
+        // region Modules / Groups / Nodes / Edges
         val modules = graph.adjacency
             .flatMap { (from, targets) -> listOf(from) + targets }
             .distinct()
@@ -67,6 +87,7 @@ class ReportBuilder {
         val nodes = modules.map { node ->
             val groupId = groupIdOf(node)
             val isCritical = node in criticalNodes
+            val isArticulationPoint = node in articulationPointsResult
 
             CytoscapeElementDto(
                 data = CytoscapeDataDto(
@@ -74,6 +95,7 @@ class ReportBuilder {
                     label = node.label,
                     group = groupId,
                     critical = isCritical,
+                    isArticulationPoint = isArticulationPoint
                 ),
                 classes = if (isCritical) "critical" else "",
             )
@@ -101,18 +123,29 @@ class ReportBuilder {
                     { it.data.target ?: "" },
                 )
             )
+        // endregion
+        // region Shape
+        val shapeMatches = matchResult.map { (shapeMatch, similarityPercent) ->
+            CytoscapeShapeSimilarityDto(
+                shapeId = shapeMatch.id,
+                shapeName = shapeMatch.title,
+                similarityPercent = similarityPercent
+            )
+        }.toList()
+        // endregion
 
         return CytoscapeReportDto(
             summary = CytoscapeSummaryDto(
                 nodeCount = modules.size,
                 edgeCount = graph.edgeCount(),
-                criticalPathLength = result.longestPathLength,
+                criticalPathLength = criticalPathsResult.longestPathLength,
             ),
             elements = nodes + edges,
             criticalPaths = criticalPaths.map { path ->
                 path.map { node -> node.id }
             },
             groups = groups,
+            shapeSimilarities = shapeMatches,
         )
     }
 

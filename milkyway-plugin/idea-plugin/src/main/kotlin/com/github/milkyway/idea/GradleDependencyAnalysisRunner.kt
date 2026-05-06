@@ -32,12 +32,6 @@ class GradleDependencyAnalysisRunner(
         graph.adjacency.forEach { (module, children) ->
             println("${module}: [${children}]")
         }
-        val articulationPointsAnalyzer = ArticulationPointsAnalyzer(graph)
-        val articulationPoints = articulationPointsAnalyzer.findArticulationPoints()
-        println("Articulation points: $articulationPoints")
-        val graphShapeMatcher = GraphShapeMatcher()
-        val matchResult = graphShapeMatcher.calculate(graph)
-        println("Match Result: $matchResult")
 
         val cytoscapeReport = ReportBuilder().build(graph)
 

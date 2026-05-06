@@ -39,7 +39,7 @@ class ArticulationPointsAnalyzer(graph: DependencyGraph) {
     /**
      * Articulation point --- point, which create 2 subgraph if removed.
      */
-    fun findArticulationPoints(): List<Node> {
+    fun findArticulationPoints(): Set<Node> {
         val tin = mutableMapOf<Node, Int>()
         val low = mutableMapOf<Node, Int>()
         val visited = mutableSetOf<Node>()
@@ -103,6 +103,6 @@ class ArticulationPointsAnalyzer(graph: DependencyGraph) {
 
         }
 
-        return articulation.sortedBy { it.id }
+        return articulation
     }
 }

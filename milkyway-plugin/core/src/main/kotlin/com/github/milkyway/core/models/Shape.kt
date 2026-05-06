@@ -3,23 +3,26 @@ package com.github.milkyway.core.models
 /**
  * Flat shape is not supported because there is no relevant distribution for flat shape
  */
-enum class Shape {
-    TRIANGLE {
+enum class Shape(
+    val id: String,
+    val title: String,
+) {
+    TRIANGLE("TRIANGLE", "Triangle") {
         override fun getBaseProfile(layers: Int): List<Int> {
             return (1..layers).toList()
         }
     },
-    INVERSE_TRIANGLE {
+    INVERSE_TRIANGLE("INVERSE_TRIANGLE", "Inverse Triangle") {
         override fun getBaseProfile(layers: Int): List<Int> {
             return (layers downTo 1).toList()
         }
     },
-    RECTANGLE {
+    RECTANGLE("RECTANGLE", "Rectangle") {
         override fun getBaseProfile(layers: Int): List<Int> {
             return List(layers) { 1 }
         }
     },
-    RHOMBUS {
+    RHOMBUS("RHOMBUS", "Rhombus") {
         override fun getBaseProfile(layers: Int): List<Int> {
             val left = (1..(layers / 2 + 1)).toList()
             val right = if (layers % 2 == 0) {
@@ -30,7 +33,7 @@ enum class Shape {
             return left + right
         }
     },
-    MIDDLE_BOTTLENECK {
+    MIDDLE_BOTTLENECK("MIDDLE_BOTTLENECK", "Middle Bottleneck") {
         override fun getBaseProfile(layers: Int): List<Int> {
             val left = (layers downTo (layers / 2 + 1)).toList()
             val right = if (left.size % 2 == 0) {

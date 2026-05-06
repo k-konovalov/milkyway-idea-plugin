@@ -15,20 +15,7 @@ class ShapeMatcher(
                 .getBaseProfile(targetLength)
                 .map { it.toDouble() }
 
-            println("--------------")
-            println("--------------")
-            println("Shape: ")
-            println(Shape.describe(matchedShape))
-            println("--------------")
-            println("--------------")
-            println("Match Profile: ")
-            println(matchedProfile)
-
             val similarity = shapeManager.similarityPercent(vec, matchedProfile, targetLength)
-            println("--------------")
-            println("--------------")
-            println("Similarity: ")
-            println(similarity)
             result[matchedShape] = similarity
         }
 
