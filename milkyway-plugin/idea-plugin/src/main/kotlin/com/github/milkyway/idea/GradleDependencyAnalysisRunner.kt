@@ -1,6 +1,7 @@
 package com.github.milkyway.idea
 
 import com.github.milkyway.core.analyzer.ArticulationPointsAnalyzer
+import com.github.milkyway.core.shape.GraphShapeMatcher
 import com.github.milkyway.idea.cytoscape.ReportBuilder
 import com.github.milkyway.idea.resolver.GradleDependencyResolver
 import com.github.milkyway.idea.resolver.RegexDependencyResolver
@@ -34,6 +35,9 @@ class GradleDependencyAnalysisRunner(
         val articulationPointsAnalyzer = ArticulationPointsAnalyzer(graph)
         val articulationPoints = articulationPointsAnalyzer.findArticulationPoints()
         println("Articulation points: $articulationPoints")
+        val graphShapeMatcher = GraphShapeMatcher()
+        val matchResult = graphShapeMatcher.calculate(graph)
+        println("Match Result: $matchResult")
 
         val cytoscapeReport = ReportBuilder().build(graph)
 
