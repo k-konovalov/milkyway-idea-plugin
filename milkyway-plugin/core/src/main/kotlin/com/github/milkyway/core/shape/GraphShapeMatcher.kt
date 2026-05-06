@@ -24,13 +24,21 @@ class GraphShapeMatcher(
     fun buildLayerProfile(graph: DependencyGraph): List<Int> {
         val indegree = mutableMapOf<Node, Int>().withDefault { 0 }
 
+        val reverseAdj = mutableMapOf<Node, MutableSet<Node>>()
+
+        for ((from, children) in graph.adjacency) {
+            for (to in children) {
+                reverseAdj.getOrPut(to) { mutableSetOf() }.add(from)
+            }
+        }
+
         for (node in graph.nodes) {
             indegree.putIfAbsent(node, 0)
         }
 
-        for ((_, children) in graph.adjacency) {
-            for (child in children) {
-                indegree[child] = indegree.getValue(child) + 1
+        for ((from, children) in graph.adjacency) {
+            for (to in children) {
+                indegree[from] = indegree.getValue(from) + 1
             }
         }
 
@@ -48,7 +56,7 @@ class GraphShapeMatcher(
         while (queue.isNotEmpty()) {
             val from = queue.removeFirst()
             ++processed
-            for (to in graph.adjacency[from].orEmpty()) {
+            for (to in reverseAdj[from].orEmpty()) {
                 val newLayer = layer.getValue(from) + 1
                 layer[to] = maxOf(layer.getOrDefault(to, 0), newLayer)
                 indegree[to] = indegree.getValue(to) - 1;
@@ -68,8 +76,9 @@ class GraphShapeMatcher(
         }
 
         val maxLayer = counts.keys.maxOrNull() ?: 0
-        return List(maxLayer + 1) { i ->
+        val reversedProfile = List(maxLayer + 1) { i ->
             counts.getOrDefault(i, 0)
         }
+        return reversedProfile.reversed()
     }
 }
