@@ -9,6 +9,7 @@ data class CytoscapeReportDto(
     val elements: List<CytoscapeElementDto>,
     val criticalPaths: List<List<String>>,
     val groups: List<CytoscapeGroupDto>,
+    val shapeSimilarities: List<CytoscapeShapeSimilarityDto>,
 )
 
 @Serializable
@@ -33,6 +34,7 @@ data class CytoscapeDataDto(
     val source: String? = null,
     val target: String? = null,
     val critical: Boolean = false,
+    val isArticulationPoint: Boolean = false,
 )
 
 @Serializable
@@ -40,4 +42,11 @@ data class CytoscapeGroupDto(
     val id: String,
     val label: String,
     val nodes: List<String>,
+)
+
+@Serializable
+data class CytoscapeShapeSimilarityDto(
+    val shapeId: String,
+    val shapeName: String,
+    val similarityPercent: Double
 )

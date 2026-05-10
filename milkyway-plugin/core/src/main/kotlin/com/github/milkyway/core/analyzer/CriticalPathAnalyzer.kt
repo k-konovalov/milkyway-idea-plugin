@@ -3,6 +3,7 @@ package com.github.milkyway.core.analyzer
 import com.github.milkyway.core.models.CondensedGraph
 import com.github.milkyway.core.models.CriticalPathsResult
 import com.github.milkyway.core.models.DependencyGraph
+import com.github.milkyway.core.models.Node
 
 /**
  * Analyzes critical paths in a dependency graph.
@@ -30,7 +31,7 @@ class CriticalPathAnalyzer {
 
     private fun condenseGraph(graph: DependencyGraph): CondensedGraph {
         val sccComponents = TarjanSccFinder(graph).find().sortedBy { it.id }
-        val nodeToComponentId = mutableMapOf<String, Int>()
+        val nodeToComponentId = mutableMapOf<Node, Int>()
 
         for (component in sccComponents) {
             for (node in component.nodes) {
@@ -56,7 +57,11 @@ class CriticalPathAnalyzer {
             }
         }
 
-        return CondensedGraph(sccComponents, condensedAdjacency, nodeToComponentId)
+        return CondensedGraph(
+            components = sccComponents,
+            adjacency = condensedAdjacency,
+            nodeToComponentId = nodeToComponentId,
+        )
     }
 
     private fun findLongestPathsInCondensedGraph(
@@ -167,7 +172,10 @@ class CriticalPathAnalyzer {
         )
     }
 
-    private fun restoreAllPaths(endNode: Int, predecessors: Map<Int, Set<Int>>): List<List<Int>> {
+    private fun restoreAllPaths(
+        endNode: Int,
+        predecessors: Map<Int, Set<Int>>,
+    ): List<List<Int>> {
         val previousNodes = predecessors[endNode].orEmpty()
 
         if (previousNodes.isEmpty()) {
@@ -181,11 +189,19 @@ class CriticalPathAnalyzer {
         }
     }
 
-    private fun compareComponentPaths(left: List<Int>, right: List<Int>, condensedGraph: CondensedGraph): Int {
+    private fun compareComponentPaths(
+        left: List<Int>,
+        right: List<Int>,
+        condensedGraph: CondensedGraph,
+    ): Int {
         val minSize = minOf(left.size, right.size)
 
         for (index in 0 until minSize) {
-            val comparison = compareComponentsLexicographically(left[index], right[index], condensedGraph)
+            val comparison = compareComponentsLexicographically(
+                left = left[index],
+                right = right[index],
+                condensedGraph = condensedGraph,
+            )
 
             if (comparison != 0) {
                 return comparison
@@ -195,15 +211,20 @@ class CriticalPathAnalyzer {
         return left.size.compareTo(right.size)
     }
 
-    private fun compareComponentsLexicographically(left: Int, right: Int, condensedGraph: CondensedGraph): Int {
+    private fun compareComponentsLexicographically(
+        left: Int,
+        right: Int,
+        condensedGraph: CondensedGraph,
+    ): Int {
         fun componentLabel(id: Int): String {
             return condensedGraph.components
                 .first { it.id == id }
                 .nodes
-                .sorted()
-                .joinToString("|")
+                .sortedBy { it.id }
+                .joinToString("|") { it.id }
         }
 
         return componentLabel(left).compareTo(componentLabel(right))
     }
+
 }

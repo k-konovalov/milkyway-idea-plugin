@@ -4,5 +4,6 @@ object MilkyWayConstants {
 
     const val CYTOSCAPE_REPORT_FILE = "cytoscape.json"
     const val GRADLE_ANALYSIS_TASK_NAME = "milkywayAnalyzeDependencies"
+    const val GRADLE_DEPENDENCY_GRAPH_FILE = "dependency-graph.json"
 
 }

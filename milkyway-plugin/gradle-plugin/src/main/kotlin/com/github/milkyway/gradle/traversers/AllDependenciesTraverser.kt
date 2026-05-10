@@ -1,8 +1,9 @@
 package com.github.milkyway.gradle.traversers
 
-import com.github.milkyway.gradle.DependencyTraverser
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.models.EdgeVisit
+import com.github.milkyway.core.models.Node
+import com.github.milkyway.gradle.DependencyTraverser
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
@@ -22,21 +23,30 @@ class AllDependenciesTraverser : DependencyTraverser {
             }
     }
 
-    private fun buildConfigurationGraph(project: Project, configuration: Configuration, graph: DependencyGraph) {
+    private fun buildConfigurationGraph(
+        project: Project,
+        configuration: Configuration,
+        graph: DependencyGraph,
+    ) {
         val resolutionRoot = configuration.incoming.resolutionResult.root
-        val configurationNode = "${project.path}:${configuration.name}"
+        val configurationNode = Node("${project.path}:${configuration.name}")
         val visitedEdges = mutableSetOf<EdgeVisit>()
 
         graph.addNode(configurationNode)
 
-        addDependencies(graph, configurationNode, resolutionRoot.dependencies, visitedEdges)
+        addDependencies(
+            graph = graph,
+            parentNode = configurationNode,
+            dependencies = resolutionRoot.dependencies,
+            visitedEdges = visitedEdges,
+        )
     }
 
     private fun addDependencies(
         graph: DependencyGraph,
-        parentNode: String,
+        parentNode: Node,
         dependencies: Iterable<DependencyResult>,
-        visitedEdges: MutableSet<EdgeVisit>
+        visitedEdges: MutableSet<EdgeVisit>,
     ) {
         for (dependency in dependencies) {
             if (dependency.isConstraint) {
@@ -51,32 +61,41 @@ class AllDependenciesTraverser : DependencyTraverser {
                     continue
                 }
 
-                val childNode = componentKey(childComponent)
+                val childNode = componentNode(childComponent)
                 graph.addEdge(parentNode, childNode)
 
                 val edgeVisit = EdgeVisit(parentNode, childNode)
 
                 if (visitedEdges.add(edgeVisit)) {
-                    addDependencies(graph, childNode, childComponent.dependencies, visitedEdges)
+                    addDependencies(
+                        graph = graph,
+                        parentNode = childNode,
+                        dependencies = childComponent.dependencies,
+                        visitedEdges = visitedEdges,
+                    )
                 }
 
             } else if (dependency is UnresolvedDependencyResult) {
-                val unresolvedNode = "UNRESOLVED:${dependency.requested.displayName}"
+                val unresolvedNode = Node("UNRESOLVED:${dependency.requested.displayName}")
                 graph.addEdge(parentNode, unresolvedNode)
+
             } else {
-                val requestedNode = dependency.requested.displayName
+                val requestedNode = Node(dependency.requested.displayName)
                 graph.addEdge(parentNode, requestedNode)
             }
         }
     }
 
-    private fun componentKey(component: ResolvedComponentResult): String {
+    private fun componentNode(component: ResolvedComponentResult): Node {
         val moduleVersion = component.moduleVersion
 
-        return if (moduleVersion == null) {
+        val id = if (moduleVersion == null) {
             component.id.displayName
         } else {
             "${moduleVersion.group}:${moduleVersion.name}:${moduleVersion.version}"
         }
+
+        return Node(id)
     }
+
 }

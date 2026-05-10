@@ -80,7 +80,7 @@ input[type="checkbox"] {
     cursor: pointer;
 }
 
-#legendHeader {
+#legendHeader, #legendShapeHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -91,7 +91,7 @@ input[type="checkbox"] {
     font-weight: 700;
 }
 
-#legendToggle {
+#legendToggle, #legendShapeToggle {
     border: none;
     background: transparent;
     color: #f2f2f2;
@@ -101,7 +101,7 @@ input[type="checkbox"] {
     pointer-events: none;
 }
 
-#legendBody {
+#legendBody, #shapeSimilarityLegendBody {
     padding: 10px 12px 12px 12px;
     font-size: 12px;
 }
@@ -144,6 +144,12 @@ input[type="checkbox"] {
 .markerCritical {
     background: #f7768e;
     border: 2px solid #9d174d;
+    box-sizing: border-box;
+}
+
+.markerArticulationPoint {
+    background-color: #22c55e;
+    border: 2px solid #44880c;
     box-sizing: border-box;
 }
 
