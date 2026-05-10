@@ -1,28 +1,30 @@
 package com.github.milkyway.core.analyzer
 
 import com.github.milkyway.core.models.DependencyGraph
+import com.github.milkyway.core.models.Node
 import com.github.milkyway.core.models.StronglyConnectedComponent
 
 class TarjanSccFinder(
     private val graph: DependencyGraph,
 ) {
     private var index = 0
-    private val indexMap = mutableMapOf<String, Int>()
-    private val lowLinkMap = mutableMapOf<String, Int>()
-    private val stack = ArrayDeque<String>()
-    private val onStack = mutableSetOf<String>()
+
+    private val indexMap = mutableMapOf<Node, Int>()
+    private val lowLinkMap = mutableMapOf<Node, Int>()
+    private val stack = ArrayDeque<Node>()
+    private val onStack = mutableSetOf<Node>()
     private val result = mutableListOf<StronglyConnectedComponent>()
 
     fun find(): List<StronglyConnectedComponent> {
         graph.adjacency.keys
-            .sorted()
+            .sortedBy { it.id }
             .filter { it !in indexMap }
             .forEach { strongConnect(it) }
 
         return result
     }
 
-    private fun strongConnect(node: String) {
+    private fun strongConnect(node: Node) {
         indexMap[node] = index
         lowLinkMap[node] = index
         index++
@@ -54,8 +56,8 @@ class TarjanSccFinder(
         }
     }
 
-    private fun popComponent(root: String): StronglyConnectedComponent {
-        val componentNodes = linkedSetOf<String>()
+    private fun popComponent(root: Node): StronglyConnectedComponent {
+        val componentNodes = linkedSetOf<Node>()
 
         while (true) {
             val top = stack.removeLast()
@@ -72,4 +74,5 @@ class TarjanSccFinder(
             nodes = componentNodes,
         )
     }
+
 }

@@ -24,10 +24,15 @@
         <span>Show groups</span>
     </label>
 
+    <label class="toolbarGroup">
+        <input id="articulationPointsCheckbox" type="checkbox" onchange="applyArticulationPointVisibility()">
+        <span>Show articulation points</span>
+    </label>
+
 </div>
 
-<div id="legend" onclick="toggleLegend()">
-    <div id="legendHeader">
+<div id="legend">
+    <div id="legendHeader" onclick="toggleLegend()">
         <span>Graph summary</span>
         <button id="legendToggle" type="button">+</button>
     </div>
@@ -57,7 +62,18 @@
             <span class="marker markerCritical"></span>
             <span>Critical path module</span>
         </div>
+        <div class="legendMarkerRow">
+            <span class="marker markerArticulationPoint"></span>
+            <span>Articulation point module</span>
+        </div>
     </div>
+
+
+    <div id="legendShapeHeader" onclick="toggleShapeLegend()">
+        <span>Shape similarities</span>
+        <button id="legendShapeToggle" type="button">+</button>
+    </div>
+    <div id="shapeSimilarityLegendBody" style="display: none;"></div>
 </div>
 
 <div id="renderMetrics" aria-label="Render time">

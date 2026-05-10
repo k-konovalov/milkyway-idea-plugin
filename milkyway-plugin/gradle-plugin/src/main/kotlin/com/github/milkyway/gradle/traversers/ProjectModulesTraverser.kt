@@ -1,10 +1,12 @@
 package com.github.milkyway.gradle.traversers
 
-import com.github.milkyway.gradle.DependencyTraverser
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.models.EdgeVisit
+import com.github.milkyway.core.models.Node
+import com.github.milkyway.gradle.DependencyTraverser
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.artifacts.result.DependencyResult
 import org.gradle.api.artifacts.result.ResolvedComponentResult
@@ -21,20 +23,26 @@ class ProjectModulesTraverser : DependencyTraverser {
     }
 
     private fun isMainProjectGraphConfiguration(configuration: Configuration): Boolean {
-        return configuration.dependencies.withType(org.gradle.api.artifacts.ProjectDependency::class.java).isNotEmpty()
+        return configuration.dependencies.withType(ProjectDependency::class.java).isNotEmpty()
     }
 
     private fun buildConfigurationGraph(graph: DependencyGraph, configuration: Configuration) {
         val resolutionRoot = configuration.incoming.resolutionResult.root
         val visitedEdges = mutableSetOf<EdgeVisit>()
-        addDependencies(graph, null, resolutionRoot.dependencies, visitedEdges)
+
+        addDependencies(
+            graph = graph,
+            parentNode = null,
+            dependencies = resolutionRoot.dependencies,
+            visitedEdges = visitedEdges,
+        )
     }
 
     private fun addDependencies(
         graph: DependencyGraph,
-        parentNode: String?,
+        parentNode: Node?,
         dependencies: Iterable<DependencyResult>,
-        visitedEdges: MutableSet<EdgeVisit>
+        visitedEdges: MutableSet<EdgeVisit>,
     ) {
         for (dependency in dependencies) {
             if (dependency.isConstraint || dependency !is ResolvedDependencyResult) {
@@ -42,19 +50,24 @@ class ProjectModulesTraverser : DependencyTraverser {
             }
 
             val childComponent = dependency.selected
-            val childNode = projectComponentKeyOrNull(childComponent)
+            val childNode = projectComponentNodeOrNull(childComponent)
 
             if (attachNode(childNode, parentNode, graph, visitedEdges)) {
-                addDependencies(graph, childNode, childComponent.dependencies, visitedEdges)
+                addDependencies(
+                    graph = graph,
+                    parentNode = childNode,
+                    dependencies = childComponent.dependencies,
+                    visitedEdges = visitedEdges,
+                )
             }
         }
     }
 
     private fun attachNode(
-        childNode: String?,
-        parentNode: String?,
+        childNode: Node?,
+        parentNode: Node?,
         graph: DependencyGraph,
-        visitedEdges: MutableSet<EdgeVisit>
+        visitedEdges: MutableSet<EdgeVisit>,
     ): Boolean {
         if (childNode == null) {
             return false
@@ -79,12 +92,14 @@ class ProjectModulesTraverser : DependencyTraverser {
         return true
     }
 
-    private fun projectComponentKeyOrNull(component: ResolvedComponentResult): String? {
+    private fun projectComponentNodeOrNull(component: ResolvedComponentResult): Node? {
         val componentId = component.id as? ProjectComponentIdentifier ?: return null
+
         if (isRootProject(componentId)) {
             return null
         }
-        return componentId.projectPath.removePrefix(":")
+
+        return Node(componentId.projectPath.removePrefix(":"))
     }
 
     private fun isRootProject(componentId: ProjectComponentIdentifier): Boolean {
