@@ -1,3 +1,47 @@
+/**
+ * @typedef CytoscapeShapeSimilarityDto
+ * @property {String} shapeId
+ * @property {String} shapeName
+ * @property {Number} similarityPercent
+ */
+/**
+ * @typedef CytoscapeGroupDto
+ * @property {String} id
+ * @property {String} label
+ * @property {String[]} nodes
+ */
+/**
+ * @typedef CytoscapeDataDto
+ * @property {String} id
+ * @property {?String} label
+ * @property {?String} group
+ * @property {?String} parent
+ * @property {?String} source
+ * @property {?String} target
+ * @property {Boolean} critical
+ * @property {Boolean} isArticulationPoint
+ */
+/**
+ * @typedef CytoscapeElementDto
+ * @property {CytoscapeDataDto} data
+ * @property {String} classes
+ */
+/**
+ * @typedef CytoscapeSummaryDto
+ * @property {Number} nodeCount
+ * @property {Number} edgeCount
+ * @property {Number} criticalPathLength
+ */
+/**
+ * @typedef CytoscapeReportDto
+ * @property {CytoscapeSummaryDto} summary
+ * @property {CytoscapeElementDto[]} elements
+ * @property {String[][]} criticalPaths
+ * @property {CytoscapeGroupDto[]} groups
+ * @property {CytoscapeShapeSimilarityDto[]} shapeSimilarities
+ */
+
+/** @type {CytoscapeReportDto} report */
 const report = window.__MILKYWAY_REPORT__;
 
 const summary = report.summary || {};
@@ -55,6 +99,14 @@ const cy = cytoscape({
             }
         },
         {
+            selector: ".articulationPointHighlight",
+            style: {
+                "background-color": "#22c55e",
+                "border-width": 3,
+                "border-color": "#166534"
+            }
+        },
+        {
             selector: ".groupNode",
             style: {
                 "background-opacity": 0.05,
@@ -108,11 +160,60 @@ function buildInitialLayout() {
         tuneLabelScale();
         fitStable();
         updateGroupOverlays();
+        applyArticulationPointVisibility();
+        renderShapeSimilarityLegend();
 
         updateRenderTime(renderStartedAt);
     });
 
     layout.run();
+}
+
+function applyArticulationPointVisibility() {
+    const enabled = document.getElementById("articulationPointsCheckbox").checked;
+
+    cy.nodes().removeClass("articulationPointHighlight");
+
+    if (!enabled) {
+        return;
+    }
+
+    cy.nodes()
+        .filter(node => node.data("isArticulationPoint") === true)
+        .addClass("articulationPointHighlight");
+}
+
+function renderShapeSimilarityLegend() {
+    const container = document.getElementById("shapeSimilarityLegendBody");
+    if (container === null) return;
+
+    const similarities = report.shapeSimilarities || [];
+    container.innerHTML = "";
+
+    if (similarities.length === 0) {
+        const empty = document.createElement("div");
+        empty.className = "legendRow";
+        empty.innerHTML = '<span class="legendLabel">None</span>';
+        container.appendChild(empty);
+        return;
+    }
+
+    similarities.forEach(item => {
+        const row = document.createElement("div");
+        row.className = "legendRow";
+
+        const label = document.createElement("span");
+        label.className = "legendLabel";
+        label.innerText = item.shapeName || item.shapeId;
+
+        const value = document.createElement("span");
+        value.className = "legendValue";
+        value.innerText = `${item.similarityPercent.toFixed(0)}%`;
+
+        row.appendChild(label);
+        row.appendChild(value);
+        container.appendChild(row);
+    });
 }
 
 function updateRenderTime(renderStartedAt) {
@@ -171,6 +272,7 @@ function resetGraph() {
     }
 
     applyCriticalPathVisibility();
+    applyArticulationPointVisibility();
     tuneLabelScale();
     fitStable();
     updateGroupOverlays();
@@ -251,6 +353,21 @@ function applyCriticalPathVisibility() {
 function toggleLegend() {
     const body = document.getElementById("legendBody");
     const toggle = document.getElementById("legendToggle");
+
+    const hidden = body.style.display === "none";
+
+    if (hidden) {
+        body.style.display = "block";
+        toggle.innerText = "−";
+    } else {
+        body.style.display = "none";
+        toggle.innerText = "+";
+    }
+}
+
+function toggleShapeLegend() {
+    const body = document.getElementById("shapeSimilarityLegendBody");
+    const toggle = document.getElementById("legendShapeToggle");
 
     const hidden = body.style.display === "none";
 
