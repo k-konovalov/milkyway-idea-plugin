@@ -1,9 +1,9 @@
-package com.github.milkyway.gradle.tasks
+package io.github.milkyway.gradle.tasks
 
 import com.github.milkyway.core.MilkyWayConstants
 import com.github.milkyway.core.mapper.GraphDependencyMapper
 import com.github.milkyway.core.models.DependencyGraph
-import com.github.milkyway.gradle.traversers.ProjectModulesTraverser
+import io.github.milkyway.gradle.traversers.ProjectModulesTraverser
 import kotlinx.serialization.json.Json
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
