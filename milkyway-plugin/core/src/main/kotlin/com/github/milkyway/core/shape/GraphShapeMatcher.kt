@@ -12,12 +12,16 @@ class GraphShapeMatcher(
     private val shapeMatcher: ShapeMatcher = ShapeMatcher()
 ) {
     fun calculate(graph: DependencyGraph): Map<Shape, Double> {
-        val graphProfile = buildLayerProfile(graph)
+        val dag = graph.asAcyclic()
+        //val graphProfile = buildLayerProfile(graph)
+        val acyclicGraphProfile = buildLayerProfile(dag)
         println("--------------")
         println("--------------")
-        println("Graph Profile: ")
-        println(graphProfile)
-        val report = shapeMatcher.calculate(graphProfile)
+        //println("Graph Profile: ")
+        //println(graphProfile)
+        println("Acyclic Graph Profile: ")
+        println(acyclicGraphProfile)
+        val report = shapeMatcher.calculate(acyclicGraphProfile)
         return report
     }
 
@@ -80,5 +84,52 @@ class GraphShapeMatcher(
             counts.getOrDefault(i, 0)
         }
         return reversedProfile.reversed()
+    }
+
+    enum class VisitState {
+        WHITE,
+        GRAY,
+        BLACK
+    }
+
+    fun DependencyGraph.asAcyclic(): DependencyGraph {
+        val result = DependencyGraph()
+
+        for (node in nodes) {
+            result.addNode(node)
+        }
+
+        val state = mutableMapOf<Node, VisitState>()
+
+        fun dfs(node: Node) {
+            state[node] = VisitState.GRAY
+
+            val targets = adjacency[node]?.toList().orEmpty()
+            for (next in targets) {
+                when (state[next] ?: VisitState.WHITE) {
+                    VisitState.WHITE -> {
+                        result.addEdge(node, next)
+                        dfs(next)
+                    }
+                    VisitState.GRAY -> {
+                        // skip back edge to break cycle
+                    }
+                    VisitState.BLACK -> {
+                        // safe edge, keep it
+                        result.addEdge(node, next)
+                    }
+                }
+            }
+
+            state[node] = VisitState.BLACK
+        }
+
+        for (node in nodes) {
+            if ((state[node] ?: VisitState.WHITE) == VisitState.WHITE) {
+                dfs(node)
+            }
+        }
+
+        return result
     }
 }

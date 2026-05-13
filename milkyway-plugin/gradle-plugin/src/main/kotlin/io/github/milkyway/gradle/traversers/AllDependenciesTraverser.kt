@@ -1,9 +1,9 @@
-package com.github.milkyway.gradle.traversers
+package io.github.milkyway.gradle.traversers
 
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.models.EdgeVisit
 import com.github.milkyway.core.models.Node
-import com.github.milkyway.gradle.DependencyTraverser
+import io.github.milkyway.gradle.DependencyTraverser
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier

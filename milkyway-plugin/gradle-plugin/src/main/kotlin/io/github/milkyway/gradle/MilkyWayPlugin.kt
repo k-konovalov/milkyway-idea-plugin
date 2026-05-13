@@ -1,7 +1,7 @@
-package com.github.milkyway.gradle
+package io.github.milkyway.gradle
 
 import com.github.milkyway.core.MilkyWayConstants
-import com.github.milkyway.gradle.tasks.PrintDependenciesTask
+import io.github.milkyway.gradle.tasks.PrintDependenciesTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 
