@@ -1,4 +1,4 @@
-package com.github.milkyway.gradle
+package io.github.milkyway.gradle
 
 import com.github.milkyway.core.models.DependencyGraph
 import org.gradle.api.Project

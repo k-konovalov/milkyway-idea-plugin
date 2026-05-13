@@ -6,6 +6,12 @@ publish-core:
 publish-gradle-plugin:
 	./gradlew :gradle-plugin:publishToMavenLocal --no-configuration-cache --rerun-tasks
 
+validate-gradle-plugin-globally:
+	./gradlew :gradle-plugin:publishPlugins --no-configuration-cache --rerun-tasks --validate-only
+
+publish-gradle-plugin-globally:
+	./gradlew :gradle-plugin:publishPlugins --no-configuration-cache --rerun-tasks
+
 run-ide:
 	./gradlew :idea-plugin:runIde --no-configuration-cache
 
