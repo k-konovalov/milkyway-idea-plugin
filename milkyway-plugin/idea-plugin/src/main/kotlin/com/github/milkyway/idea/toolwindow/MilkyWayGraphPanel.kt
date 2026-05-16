@@ -8,6 +8,7 @@ import java.awt.BorderLayout
 import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.SwingUtilities
 
 class MilkyWayGraphPanel(
     project: Project
@@ -38,6 +39,10 @@ class MilkyWayGraphPanel(
     private fun createGraphPanel(json: String): JComponent {
         val browser = JBCefBrowser()
         browser.loadHTML(HtmlRenderer.render(json))
+
+        SwingUtilities.invokeLater {
+            browser.openDevtools()
+        }
         return browser.component
     }
 }

@@ -164,6 +164,7 @@ function buildInitialLayout() {
         renderShapeSimilarityLegend();
 
         updateRenderTime(renderStartedAt);
+        console.log("Graph is initialized");
     });
 
     layout.run();
