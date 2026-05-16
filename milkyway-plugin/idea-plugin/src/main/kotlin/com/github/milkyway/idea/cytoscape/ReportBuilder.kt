@@ -83,6 +83,15 @@ class ReportBuilder {
                 )
             }
             .sortedBy { it.id }
+        val groupElements = groups.map { group ->
+            CytoscapeElementDto(
+                data = CytoscapeDataDto(
+                    id = group.id,
+                    label = group.label,
+                ),
+                classes = "groupNode"
+            )
+        }
 
         val nodes = modules.map { node ->
             val groupId = groupIdOf(node)
@@ -94,6 +103,7 @@ class ReportBuilder {
                     id = node.id,
                     label = node.label,
                     group = groupId,
+                    parent = groupId,
                     critical = isCritical,
                     isArticulationPoint = isArticulationPoint
                 ),
@@ -140,7 +150,7 @@ class ReportBuilder {
                 edgeCount = graph.edgeCount(),
                 criticalPathLength = criticalPathsResult.longestPathLength,
             ),
-            elements = nodes + edges,
+            elements = nodes + edges + groupElements,
             criticalPaths = criticalPaths.map { path ->
                 path.map { node -> node.id }
             },

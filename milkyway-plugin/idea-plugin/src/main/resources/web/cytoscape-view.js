@@ -169,7 +169,17 @@ function buildInitialLayout() {
 
     layout.run();
 }
-
+/**
+const ec = cy.expandCollapse({
+    layoutBy: layoutOptions,
+    cueEnabled: true,
+    animate: true,
+    undoable: true,
+});
+console.log({
+    'ec': ec,
+});
+*/
 function applyArticulationPointVisibility() {
     const enabled = document.getElementById("articulationPointsCheckbox").checked;
 
