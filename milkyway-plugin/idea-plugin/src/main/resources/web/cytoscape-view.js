@@ -176,6 +176,7 @@ function buildInitialLayout() {
     layout.run();
 }
 
+// region Grouping Nodes
 const ec = cy.expandCollapse({
     // To prevent from relayout after expand/collapse.
     // E.g. it rotates 90 degrees
@@ -295,6 +296,55 @@ function expandSelected() {
         ec.expandRecursively(selectedEdges);
     }
 }
+
+cy.on('tap', 'node, edge', event => {
+    const originalEvent = event.originalEvent;
+    const element = event.target;
+
+    const isCtrl =
+        originalEvent.ctrlKey ||
+        originalEvent.metaKey;
+
+    if (isCtrl) {
+        element.selected(!element.selected());
+    } else {
+        cy.elements().unselect();
+        element.selected(true);
+    }
+});
+// endregion
+
+// region Zoom
+/**
+ * @param {Number} factor
+ */
+function zoomIn(factor) {
+    cy.zoom({
+        level: cy.zoom() * factor,
+        renderedPosition: {
+            x: cy.width() / 2,
+            y: cy.height() / 2,
+        },
+    });
+}
+
+/**
+ * @param {Number} factor
+ */
+function zoomOut(factor) {
+    cy.zoom({
+        level: cy.zoom() / factor,
+        renderedPosition: {
+            x: cy.width() / 2,
+            y: cy.width() / 2,
+        },
+    });
+}
+
+function fitGraph() {
+    cy.fit();
+}
+// endregion
 
 function renderShapeSimilarityLegend() {
     const container = document.getElementById("shapeSimilarityLegendBody");
@@ -688,20 +738,4 @@ cy.ready(() => {
 window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
-});
-
-cy.on('tap', 'node, edge', event => {
-    const originalEvent = event.originalEvent;
-    const element = event.target;
-
-    const isCtrl =
-        originalEvent.ctrlKey ||
-        originalEvent.metaKey;
-
-    if (isCtrl) {
-        element.selected(!element.selected());
-    } else {
-        cy.elements().unselect();
-        element.selected(true);
-    }
 });
