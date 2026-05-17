@@ -71,6 +71,7 @@ const cy = cytoscape({
     layout: {
         name: "preset"
     },
+    selectionType: "additive",
     style: [
         {
             selector: "node",
@@ -139,7 +140,7 @@ const cy = cytoscape({
             }
         },
         {
-            selector: ".selectedNode",
+            selector: "node:selected",
             style: {
                 "border-width": 4,
                 "border-color": "#22c55e"
@@ -147,6 +148,11 @@ const cy = cytoscape({
         }
     ]
 });
+
+// const ur = cy.undoRedo();
+// console.log({
+//     'ur': ur,
+// })
 
 function buildInitialLayout() {
     const layout = cy.layout(layoutOptions);
@@ -164,11 +170,26 @@ function buildInitialLayout() {
         renderShapeSimilarityLegend();
 
         updateRenderTime(renderStartedAt);
+        console.log("Graph is initialized");
     });
 
     layout.run();
 }
 
+const ec = cy.expandCollapse({
+    // To prevent from relayout after expand/collapse.
+    // E.g. it rotates 90 degrees
+    layoutBy: null,
+    // To prevent from moving nodes on expand.
+    // Change true to see effect
+    fisheye: false,
+    animate: false,
+    // To show system +- expand/collapse buttons
+    cueEnabled: true
+});
+console.log({
+    'ec': ec,
+});
 function applyArticulationPointVisibility() {
     const enabled = document.getElementById("articulationPointsCheckbox").checked;
 
@@ -181,6 +202,98 @@ function applyArticulationPointVisibility() {
     cy.nodes()
         .filter(node => node.data("isArticulationPoint") === true)
         .addClass("articulationPointHighlight");
+}
+
+function getNewGroupIdCallback() {
+    let id = 1;
+    return function() {
+        return id++;
+    }
+}
+const getNewGroupId = getNewGroupIdCallback();
+
+function addParentNode(idSuffix, parent = undefined) {
+    const id = 'c' + idSuffix;
+    const parentNode = {
+        data: {
+            id: id,
+            label: `group[${idSuffix}]`
+        },
+        classes: 'groupNode',
+    };
+    cy.add(parentNode);
+    cy.$('#' + id).move({parent: parent});
+    return id;
+}
+
+function addCompound() {
+    const selectedElements = cy.elements(':selected');
+    if (selectedElements.length < 1) {
+        console.warn('No selected elements!', selectedElements);
+        return;
+    }
+    const parent = selectedElements[0].parent().id();
+    const nodesWithDifferentParent = selectedElements.filter(
+        selectedElement => selectedElement.parent().id() !== parent
+    );
+    const hasDifferentParent = nodesWithDifferentParent.nonempty();
+    console.log({
+        'parent': parent,
+        'nodeWithDifferentParent': nodesWithDifferentParent,
+        'hasDifferentParent': hasDifferentParent,
+    });
+    if (hasDifferentParent) {
+        console.warn('Selected nodes have different parent!')
+        return;
+    }
+    const id = getNewGroupId();
+    addParentNode(id, parent);
+    selectedElements.forEach(selectedElement => {
+        selectedElement.move({parent: 'c' + id})
+    });
+}
+
+function collapseSelected() {
+    const selectedNodes = cy.nodes(':selected');
+    const selectedEdges = cy.edges(':selected')
+
+    const typeIds = cy.elements(':selected')
+    const nodeIds = cy.elements('node:selected')
+    const edgeIds = cy.elements('edge:selected');
+
+    console.log({
+        'typeIds': typeIds,
+        'nodeIds': nodeIds,
+        'edgeIds': edgeIds,
+    });
+
+    console.log({
+        'selectedNodes': selectedNodes,
+        'selectedEdges': selectedEdges,
+    })
+
+    if (selectedNodes.length > 0) {
+        ec.collapseRecursively(selectedNodes);
+    }
+    if (selectedEdges.length > 0) {
+        ec.collapseRecursively(selectedEdges);
+    }
+}
+
+function expandSelected() {
+    const selectedNodes = cy.nodes(':selected')
+    const selectedEdges = cy.edges(':selected')
+
+    console.log({
+        'selectedNodes': selectedNodes,
+        'selectedEdges': selectedEdges,
+    });
+    if (selectedNodes.length > 0) {
+        ec.expandRecursively(selectedNodes);
+    }
+    if (selectedEdges.length > 0) {
+        ec.expandRecursively(selectedEdges);
+    }
 }
 
 function renderShapeSimilarityLegend() {
@@ -264,7 +377,7 @@ function orientRootsLeft() {
 }
 
 function resetGraph() {
-    cy.elements().removeClass("selectedNode");
+    cy.elements().unselect();
 
     if (!restoreBasePositions()) {
         buildInitialLayout();
@@ -564,13 +677,6 @@ function stopGroupDrag() {
     updateGroupOverlays();
 }
 
-cy.on("tap", "node", event => {
-    const node = event.target;
-
-    cy.nodes().removeClass("selectedNode");
-    node.addClass("selectedNode");
-});
-
 cy.on("pan zoom render", () => {
     updateGroupOverlays();
 });
@@ -582,4 +688,20 @@ cy.ready(() => {
 window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
+});
+
+cy.on('tap', 'node, edge', event => {
+    const originalEvent = event.originalEvent;
+    const element = event.target;
+
+    const isCtrl =
+        originalEvent.ctrlKey ||
+        originalEvent.metaKey;
+
+    if (isCtrl) {
+        element.selected(!element.selected());
+    } else {
+        cy.elements().unselect();
+        element.selected(true);
+    }
 });

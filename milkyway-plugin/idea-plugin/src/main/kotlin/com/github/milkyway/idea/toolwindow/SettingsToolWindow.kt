@@ -51,6 +51,9 @@ class SettingsToolWindow : ToolWindowFactory {
             form.add(SelectRow("Parser", listOf(PARSER_GRADLE, PARSER_REGEX), settings.state.parser) {
                 settings.state.parser = it
             }, gbc(y++))
+            form.add(CheckboxRow("Enable DevTools", settings.state.isDevToolsEnabled) {
+                settings.state.isDevToolsEnabled = it
+            }, gbc(y++))
             form.add(SelectRow("Theme [not implemented]", listOf(THEME_BLACK, THEME_WHITE, THEME_COLORED,), settings.state.theme) {
                 settings.state.theme = it
             }, gbc(y++))

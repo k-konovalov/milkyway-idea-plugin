@@ -10,6 +10,9 @@
 <body>
 <div id="toolbar">
     <button onclick="resetGraph()">Reset</button>
+    <button onclick="addCompound()">Compound</button>
+    <button onclick="collapseSelected()">Collapse</button>
+    <button onclick="expandSelected()">Expand</button>
 
     <button class="iconButton" title="Rotate left 90°" onclick="rotateGraph(-90)">↺</button>
     <button class="iconButton" title="Rotate right 90°" onclick="rotateGraph(90)">↻</button>
@@ -85,6 +88,12 @@
 
 <script>
     {{CYTOSCAPE_JS}}
+</script>
+<script>
+    {{CYTOSCAPE_EXPAND_COLLAPSE_JS}}
+</script>
+<script>
+    {{CYTOSCAPE_UNDO_REDO_JS}}
 </script>
 
 <script>

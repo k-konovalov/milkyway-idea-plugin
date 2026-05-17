@@ -32,3 +32,7 @@ google-services.json
 
 # Android Profiling
 *.hprof
+
+milkyway-plugin/idea-plugin/src/main/resources/node_modules/*
+milkyway-plugin/idea-plugin/src/main/resources/package-lock.json
+milkyway-plugin/idea-plugin/src/main/resources/package.json
