@@ -1,4 +1,9 @@
 /**
+ * @typedef CytoscapePluginSettingsDto
+ * @property {Boolean} isAnimationEnabled
+ * @property {String} theme
+ */
+/**
  * @typedef CytoscapeShapeSimilarityDto
  * @property {String} shapeId
  * @property {String} shapeName
@@ -39,10 +44,13 @@
  * @property {String[][]} criticalPaths
  * @property {CytoscapeGroupDto[]} groups
  * @property {CytoscapeShapeSimilarityDto[]} shapeSimilarities
+ * @property {CytoscapePluginSettingsDto} cytoscapePluginSettings
  */
 
 /** @type {CytoscapeReportDto} report */
 const report = window.__MILKYWAY_REPORT__;
+const pluginSettings = report.cytoscapePluginSettings;
+console.log({'pluginSettings': pluginSettings});
 
 const summary = report.summary || {};
 document.getElementById("nodeCount").innerText = summary.nodeCount ?? "–";
@@ -176,6 +184,7 @@ function buildInitialLayout() {
     layout.run();
 }
 
+// region Grouping Nodes
 const ec = cy.expandCollapse({
     // To prevent from relayout after expand/collapse.
     // E.g. it rotates 90 degrees
@@ -295,6 +304,119 @@ function expandSelected() {
         ec.expandRecursively(selectedEdges);
     }
 }
+
+cy.on('tap', 'node, edge', event => {
+    const originalEvent = event.originalEvent;
+    const element = event.target;
+
+    const isCtrl =
+        originalEvent.ctrlKey ||
+        originalEvent.metaKey;
+
+    if (isCtrl) {
+        element.selected(!element.selected());
+    } else {
+        cy.elements().unselect();
+        element.selected(true);
+    }
+});
+// endregion
+
+// region Zoom
+let isZoomAnimating = false;
+/**
+ * @param {Number} factor
+ */
+function zoomBy(factor) {
+    if (isZoomAnimating) {
+        return;
+    }
+    const centerX = cy.width() / 2;
+    const centerY = cy.width() / 2;
+    const isAnimationEnabled = pluginSettings.isAnimationEnabled;
+
+    const zoomOptions = {
+        level: cy.zoom() * factor,
+        renderedPosition: {
+            x: centerX,
+            y: centerY,
+        }
+    }
+    if (isAnimationEnabled) {
+        isZoomAnimating = true;
+        cy.animate({zoom: zoomOptions}, {
+            duration: 200,
+            complete: () => { isZoomAnimating = false; },
+        })
+    } else {
+        cy.zoom(zoomOptions);
+    }
+}
+
+/**
+ * @param {Number} factor
+ */
+function zoomIn(factor) {
+    zoomBy(factor)
+}
+
+/**
+ * @param {Number} factor
+ */
+function zoomOut(factor) {
+    zoomBy(1 / factor)
+}
+
+function fitGraph() {
+    const isAnimationEnabled = pluginSettings.isAnimationEnabled;
+    if (isAnimationEnabled) {
+        cy.animate({
+            fit: {
+                eles: cy.elements(),
+                padding: FIT_PADDING
+            }
+        }, {
+            duration: 300
+        });
+    } else {
+        cy.fit();
+    }
+}
+
+document.addEventListener('keydown', event => {
+    const isCtrl = event.ctrlKey || event.metaKey;
+    const zoomFactor = 1.2;
+    if (!isCtrl) {
+        return;
+    }
+
+    const zoomInKeys = [
+        'Equal',
+        'NumpadAdd',
+        'Slash'
+    ];
+    const zoomOutKeys = [
+        'Minus',
+        'NumpadSubtract',
+        'KeyK'
+    ];
+    const isZoomIn = zoomInKeys.includes(event.code);
+    const isZoomOut = zoomOutKeys.includes(event.code);
+
+    console.log({'event.code': event.code});
+    if (isZoomIn || isZoomOut) {
+        event.preventDefault();
+    } else {
+        return;
+    }
+
+    if (isZoomIn) {
+        zoomIn(zoomFactor);
+    } else if (isZoomOut) {
+        zoomOut(zoomFactor);
+    }
+});
+// endregion
 
 function renderShapeSimilarityLegend() {
     const container = document.getElementById("shapeSimilarityLegendBody");
@@ -688,20 +810,4 @@ cy.ready(() => {
 window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
-});
-
-cy.on('tap', 'node, edge', event => {
-    const originalEvent = event.originalEvent;
-    const element = event.target;
-
-    const isCtrl =
-        originalEvent.ctrlKey ||
-        originalEvent.metaKey;
-
-    if (isCtrl) {
-        element.selected(!element.selected());
-    } else {
-        cy.elements().unselect();
-        element.selected(true);
-    }
 });

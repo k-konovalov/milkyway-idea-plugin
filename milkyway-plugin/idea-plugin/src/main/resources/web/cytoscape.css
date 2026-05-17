@@ -1,3 +1,12 @@
+:root {
+    --content-z-index: 1000;
+    --panel-background: rgba(43, 43, 43, 0.94);
+    --text-font-color: #f2f2f2;
+    --button-background-color-hover: #3a3a3a;
+    --button-border-radius: 6px;
+    --button-background-color: #2b2b2b;
+}
+
 html, body {
     margin: 0;
     padding: 0;
@@ -19,30 +28,30 @@ html, body {
     position: absolute;
     top: 12px;
     left: 12px;
-    z-index: 1000;
+    z-index: var(--content-z-index);
     display: flex;
     align-items: center;
     gap: 8px;
     padding: 8px 10px;
     border: 1px solid #555;
     border-radius: 8px;
-    background: rgba(43, 43, 43, 0.94);
-    color: #f2f2f2;
+    background: var(--panel-background);
+    color: var(--text-font-color);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
 }
 
 button {
     border: 1px solid #555;
-    border-radius: 6px;
+    border-radius: var(--button-border-radius);
     padding: 5px 10px;
-    background: #2b2b2b;
-    color: #f2f2f2;
+    background: var(--button-background-color);
+    color: var(--text-font-color);
     font-size: 13px;
     cursor: pointer;
 }
 
 button:hover {
-    background: #3a3a3a;
+    background: var(--button-background-color-hover);
 }
 
 .iconButton {
@@ -68,13 +77,13 @@ input[type="checkbox"] {
     position: absolute;
     top: 12px;
     right: 12px;
-    z-index: 1000;
+    z-index: var(--content-z-index);
     min-width: 220px;
     max-width: 320px;
     border: 1px solid #555;
     border-radius: 8px;
-    background: rgba(43, 43, 43, 0.94);
-    color: #f2f2f2;
+    background: var(--panel-background);
+    color: var(--text-font-color);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
     overflow: hidden;
     cursor: pointer;
@@ -94,7 +103,7 @@ input[type="checkbox"] {
 #legendToggle, #legendShapeToggle {
     border: none;
     background: transparent;
-    color: #f2f2f2;
+    color: var(--text-font-color);
     font-size: 16px;
     line-height: 1;
     padding: 0;
@@ -178,7 +187,7 @@ input[type="checkbox"] {
     left: 8px;
     padding: 2px 6px;
     border-radius: 6px;
-    background: rgba(43, 43, 43, 0.94);
+    background: var(--panel-background);
     color: #d8d8d8;
     font-size: 12px;
     font-weight: 600;
@@ -196,13 +205,45 @@ input[type="checkbox"] {
     padding: 7px 10px;
     border: none;
     border-radius: 8px;
-    background: rgba(43, 43, 43, 0.94);
-    color: #f2f2f2;
+    background: var(--panel-background);
+    color: var(--text-font-color);
     font-size: 12px;
     box-shadow: none;
     cursor: default;
     user-select: none;
     -webkit-user-select: none;
+}
+
+#zoom-panel {
+    position: absolute;
+    left: 12px;
+    bottom: 12px;
+    z-index: var(--content-z-index);
+    padding: 7px 10px;
+    border: none;
+    border-radius: 8px;
+    background: var(--panel-background);
+    color: var(--text-font-color);
+    box-shadow: none;
+    display: flex;
+    gap: 10px;
+}
+
+.zoom-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 4px;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--button-border-radius);
+
+    cursor: pointer;
+    transition: background 0.15s ease;
+}
+
+.zoom-btn:hover {
+    background: var(--button-background-color-hover);
 }
 
 #renderMetrics,

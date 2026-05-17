@@ -10,6 +10,7 @@ data class CytoscapeReportDto(
     val criticalPaths: List<List<String>>,
     val groups: List<CytoscapeGroupDto>,
     val shapeSimilarities: List<CytoscapeShapeSimilarityDto>,
+    val cytoscapePluginSettings: CytoscapePluginSettingsDto,
 )
 
 @Serializable
@@ -49,4 +50,10 @@ data class CytoscapeShapeSimilarityDto(
     val shapeId: String,
     val shapeName: String,
     val similarityPercent: Double
+)
+
+@Serializable
+data class CytoscapePluginSettingsDto(
+    val isAnimationEnabled: Boolean = false,
+    val theme: String = "Black"
 )

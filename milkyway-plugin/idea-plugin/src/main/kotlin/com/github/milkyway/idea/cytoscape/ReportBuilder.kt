@@ -6,6 +6,7 @@ import com.github.milkyway.core.models.CriticalPathsResult
 import com.github.milkyway.core.models.CytoscapeDataDto
 import com.github.milkyway.core.models.CytoscapeElementDto
 import com.github.milkyway.core.models.CytoscapeGroupDto
+import com.github.milkyway.core.models.CytoscapePluginSettingsDto
 import com.github.milkyway.core.models.CytoscapeReportDto
 import com.github.milkyway.core.models.CytoscapeShapeSimilarityDto
 import com.github.milkyway.core.models.CytoscapeSummaryDto
@@ -13,6 +14,7 @@ import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.models.Node
 import com.github.milkyway.core.models.Shape
 import com.github.milkyway.core.shape.GraphShapeMatcher
+import com.github.milkyway.idea.settings.MilkyWaySettings
 
 class ReportBuilder {
 
@@ -143,6 +145,13 @@ class ReportBuilder {
             )
         }.toList()
         // endregion
+        // region Plugin Settings
+        val settings = MilkyWaySettings.getInstance();
+        val pluginSettings = CytoscapePluginSettingsDto(
+            isAnimationEnabled = settings.state.isAnimationEnabled,
+            theme = settings.state.theme,
+        )
+        // endregion
 
         return CytoscapeReportDto(
             summary = CytoscapeSummaryDto(
@@ -156,6 +165,7 @@ class ReportBuilder {
             },
             groups = groups,
             shapeSimilarities = shapeMatches,
+            cytoscapePluginSettings = pluginSettings,
         )
     }
 
