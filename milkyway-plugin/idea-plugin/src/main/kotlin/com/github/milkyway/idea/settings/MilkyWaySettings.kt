@@ -28,6 +28,7 @@ class MilkyWaySettings: PersistentStateComponent<MilkyWaySettings.State> {
         var isGroupingByRegionEnabled: Boolean = false,
         var isZoomInOutEnabled: Boolean = false,
         var isDevToolsEnabled: Boolean = false,
+        var isAnimationEnabled: Boolean = false,
     )
 
     private var state = State()

@@ -1,4 +1,9 @@
 /**
+ * @typedef CytoscapePluginSettingsDto
+ * @property {Boolean} isAnimationEnabled
+ * @property {String} theme
+ */
+/**
  * @typedef CytoscapeShapeSimilarityDto
  * @property {String} shapeId
  * @property {String} shapeName
@@ -39,10 +44,13 @@
  * @property {String[][]} criticalPaths
  * @property {CytoscapeGroupDto[]} groups
  * @property {CytoscapeShapeSimilarityDto[]} shapeSimilarities
+ * @property {CytoscapePluginSettingsDto} cytoscapePluginSettings
  */
 
 /** @type {CytoscapeReportDto} report */
 const report = window.__MILKYWAY_REPORT__;
+const pluginSettings = report.cytoscapePluginSettings;
+console.log({'pluginSettings': pluginSettings});
 
 const summary = report.summary || {};
 document.getElementById("nodeCount").innerText = summary.nodeCount ?? "–";
@@ -315,35 +323,99 @@ cy.on('tap', 'node, edge', event => {
 // endregion
 
 // region Zoom
+let isZoomAnimating = false;
+/**
+ * @param {Number} factor
+ */
+function zoomBy(factor) {
+    if (isZoomAnimating) {
+        return;
+    }
+    const centerX = cy.width() / 2;
+    const centerY = cy.width() / 2;
+    const isAnimationEnabled = pluginSettings.isAnimationEnabled;
+
+    const zoomOptions = {
+        level: cy.zoom() * factor,
+        renderedPosition: {
+            x: centerX,
+            y: centerY,
+        }
+    }
+    if (isAnimationEnabled) {
+        isZoomAnimating = true;
+        cy.animate({zoom: zoomOptions}, {
+            duration: 200,
+            complete: () => { isZoomAnimating = false; },
+        })
+    } else {
+        cy.zoom(zoomOptions);
+    }
+}
+
 /**
  * @param {Number} factor
  */
 function zoomIn(factor) {
-    cy.zoom({
-        level: cy.zoom() * factor,
-        renderedPosition: {
-            x: cy.width() / 2,
-            y: cy.height() / 2,
-        },
-    });
+    zoomBy(factor)
 }
 
 /**
  * @param {Number} factor
  */
 function zoomOut(factor) {
-    cy.zoom({
-        level: cy.zoom() / factor,
-        renderedPosition: {
-            x: cy.width() / 2,
-            y: cy.width() / 2,
-        },
-    });
+    zoomBy(1 / factor)
 }
 
 function fitGraph() {
-    cy.fit();
+    const isAnimationEnabled = pluginSettings.isAnimationEnabled;
+    if (isAnimationEnabled) {
+        cy.animate({
+            fit: {
+                eles: cy.elements(),
+                padding: FIT_PADDING
+            }
+        }, {
+            duration: 300
+        });
+    } else {
+        cy.fit();
+    }
 }
+
+document.addEventListener('keydown', event => {
+    const isCtrl = event.ctrlKey || event.metaKey;
+    const zoomFactor = 1.2;
+    if (!isCtrl) {
+        return;
+    }
+
+    const zoomInKeys = [
+        'Equal',
+        'NumpadAdd',
+        'Slash'
+    ];
+    const zoomOutKeys = [
+        'Minus',
+        'NumpadSubtract',
+        'KeyK'
+    ];
+    const isZoomIn = zoomInKeys.includes(event.code);
+    const isZoomOut = zoomOutKeys.includes(event.code);
+
+    console.log({'event.code': event.code});
+    if (isZoomIn || isZoomOut) {
+        event.preventDefault();
+    } else {
+        return;
+    }
+
+    if (isZoomIn) {
+        zoomIn(zoomFactor);
+    } else if (isZoomOut) {
+        zoomOut(zoomFactor);
+    }
+});
 // endregion
 
 function renderShapeSimilarityLegend() {
