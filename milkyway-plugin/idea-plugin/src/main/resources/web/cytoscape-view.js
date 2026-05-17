@@ -71,6 +71,7 @@ const cy = cytoscape({
     layout: {
         name: "preset"
     },
+    selectionType: "additive",
     style: [
         {
             selector: "node",
@@ -139,7 +140,7 @@ const cy = cytoscape({
             }
         },
         {
-            selector: ".selectedNode",
+            selector: "node:selected",
             style: {
                 "border-width": 4,
                 "border-color": "#22c55e"
@@ -147,6 +148,11 @@ const cy = cytoscape({
         }
     ]
 });
+
+// const ur = cy.undoRedo();
+// console.log({
+//     'ur': ur,
+// })
 
 function buildInitialLayout() {
     const layout = cy.layout(layoutOptions);
@@ -279,7 +285,7 @@ function orientRootsLeft() {
 }
 
 function resetGraph() {
-    cy.elements().removeClass("selectedNode");
+    cy.elements().unselect();
 
     if (!restoreBasePositions()) {
         buildInitialLayout();
@@ -578,13 +584,6 @@ function stopGroupDrag() {
 
     updateGroupOverlays();
 }
-
-cy.on("tap", "node", event => {
-    const node = event.target;
-
-    cy.nodes().removeClass("selectedNode");
-    node.addClass("selectedNode");
-});
 
 cy.on("pan zoom render", () => {
     updateGroupOverlays();
