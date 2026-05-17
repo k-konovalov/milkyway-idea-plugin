@@ -169,17 +169,21 @@ function buildInitialLayout() {
 
     layout.run();
 }
-/**
+
 const ec = cy.expandCollapse({
-    layoutBy: layoutOptions,
-    cueEnabled: true,
-    animate: true,
-    undoable: true,
+    // To prevent from relayout after expand/collapse.
+    // E.g. it rotates 90 degrees
+    layoutBy: null,
+    // To prevent from moving nodes on expand.
+    // Change true to see effect
+    fisheye: false,
+    animate: false,
+    // To show system +- expand/collapse buttons
+    cueEnabled: true
 });
 console.log({
     'ec': ec,
 });
-*/
 function applyArticulationPointVisibility() {
     const enabled = document.getElementById("articulationPointsCheckbox").checked;
 
