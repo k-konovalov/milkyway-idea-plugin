@@ -204,10 +204,21 @@ function applyArticulationPointVisibility() {
         .addClass("articulationPointHighlight");
 }
 
+function getNewGroupIdCallback() {
+    let id = 1;
+    return function() {
+        return id++;
+    }
+}
+const getNewGroupId = getNewGroupIdCallback();
+
 function addParentNode(idSuffix, parent = undefined) {
     const id = 'c' + idSuffix;
     const parentNode = {
-        data: {id: id },
+        data: {
+            id: id,
+            label: `group[${idSuffix}]`
+        },
         classes: 'groupNode',
     };
     cy.add(parentNode);
@@ -235,7 +246,7 @@ function addCompound() {
         console.warn('Selected nodes have different parent!')
         return;
     }
-    const id = new Date().getTime();
+    const id = getNewGroupId();
     addParentNode(id, parent);
     selectedElements.forEach(selectedElement => {
         selectedElement.move({parent: 'c' + id})
