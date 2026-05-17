@@ -26,7 +26,8 @@ class MilkyWaySettings: PersistentStateComponent<MilkyWaySettings.State> {
         var parser: String = PARSER_REGEX,
         var theme: String = THEME_BLACK,
         var isGroupingByRegionEnabled: Boolean = false,
-        val isZoomInOutEnabled: Boolean = false,
+        var isZoomInOutEnabled: Boolean = false,
+        var isDevToolsEnabled: Boolean = false,
     )
 
     private var state = State()
