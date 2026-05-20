@@ -79,6 +79,17 @@ const cy = cytoscape({
     layout: {
         name: "preset"
     },
+    renderer: {
+        name: 'canvas',  // still uses the canvas renderer
+        webgl: true, // turns on WebGL mode
+        showFps: true,
+        webglDebug: true, // (optional) prints debug info to the browser console
+
+        webglTexSize: 4096,
+        webglTexRows: 24,
+        webglBatchSize: 2048,
+        webglTexPerBatch: 16,
+    },
     selectionType: "additive",
     style: [
         {
@@ -106,6 +117,18 @@ const cy = cytoscape({
                 "line-color": "#8a8a8a",
                 "target-arrow-color": "#8a8a8a"
             }
+        },
+        {
+            selector: 'edge.cy-expand-collapse-collapsed-edge',
+            style:
+                {
+                    "text-outline-color": "#ffffff",
+                    "text-outline-width": "2px",
+                    'label': (e) => {
+                        return '(' + e.data('collapsedEdges').length + ')';
+                    },
+                    'line-style': 'dashed',
+                }
         },
         {
             selector: ".articulationPointHighlight",
@@ -304,6 +327,32 @@ function expandSelected() {
         ec.expandRecursively(selectedEdges);
     }
 }
+
+function collapseEdgesBetweenNodes() {
+    ec.collapseEdgesBetweenNodes(cy.nodes(':selected'), {
+        groupEdgesOfSameTypeOnCollapse: false,
+        allowNestedEdgeCollapse: true,
+    });
+}
+
+function expandEdgesBetweenNodes() {
+    ec.expandEdgesBetweenNodes(cy.nodes(':selected'), {
+        groupEdgesOfSameTypeOnCollapse: false,
+        allowNestedEdgeCollapse: true,
+    });
+}
+
+function mcollapseAllNodes() {
+    ec.collapseAll();
+}
+
+function mcollapseAllEdges() {
+    ec.collapseAllEdges({
+        groupEdgesOfSameTypeOnCollapse: false,
+        allowNestedEdgeCollapse: true,
+    })
+}
+
 
 cy.on('tap', 'node, edge', event => {
     const originalEvent = event.originalEvent;
