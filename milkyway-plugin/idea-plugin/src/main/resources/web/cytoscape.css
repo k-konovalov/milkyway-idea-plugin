@@ -38,6 +38,11 @@ html, body {
     background: var(--panel-background);
     color: var(--text-font-color);
     box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    max-width: min(100%, 600px);
+    box-sizing: border-box;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    width: fit-content;
 }
 
 button {
