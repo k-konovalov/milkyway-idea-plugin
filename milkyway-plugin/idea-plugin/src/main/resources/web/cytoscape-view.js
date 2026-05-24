@@ -355,12 +355,50 @@ function mcollapseAllNodes() {
     ec.collapseAll();
 }
 
+function mexpandAllNodes() {
+    ec.expandAll();
+}
+
 function mcollapseAllEdges() {
     ec.collapseAllEdges({
         groupEdgesOfSameTypeOnCollapse: false,
         allowNestedEdgeCollapse: true,
     })
 }
+
+document.addEventListener('keydown', event => {
+    const isCtrl = event.ctrlKey || event.metaKey;
+    const zoomFactor = 1.2;
+    if (!isCtrl || !event.shiftKey) {
+        return;
+    }
+
+    const expandKeys = [
+        'Equal',
+        'NumpadAdd',
+        'Slash'
+    ];
+    const collapseKeys = [
+        'Minus',
+        'NumpadSubtract',
+        'KeyK'
+    ];
+    const isExpandAll = expandKeys.includes(event.code);
+    const isCollapseAll = collapseKeys.includes(event.code);
+
+    console.log({'event.code': event.code});
+    if (isExpandAll || isCollapseAll) {
+        event.preventDefault();
+    } else {
+        return;
+    }
+
+    if (isExpandAll) {
+        mexpandAllNodes();
+    } else if (isCollapseAll) {
+        mcollapseAllNodes();
+    }
+});
 
 
 cy.on('tap', 'node, edge', event => {
