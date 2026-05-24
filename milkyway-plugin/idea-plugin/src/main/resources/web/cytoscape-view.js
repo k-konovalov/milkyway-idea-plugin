@@ -860,3 +860,21 @@ window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
 });
+
+// region FPS
+const fpsEl = document.getElementById('fpsCount')
+let last = performance.now();
+let frames = 0;
+
+function tick(now) {
+    ++frames;
+    const elapsed = now - last;
+    if (elapsed >= 1000) {
+        fpsEl.textContent = (frames * 1000 / elapsed).toFixed(0);
+        frames = 0;
+        last = now;
+    }
+    requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+// endregion

@@ -83,8 +83,13 @@
     <div id="shapeSimilarityLegendBody" style="display: none;"></div>
 </div>
 
-<div id="renderMetrics" aria-label="Render time">
-    Render: <span id="renderTime">–</span> ms
+<div id="performance">
+    <div class="metric-block" id="renderMetrics" aria-label="Render time">
+        Render: <span id="renderTime">–</span> ms
+    </div>
+    <div class="metric-block" id="fpsMetrics" aria-label="FPS">
+        <span id="fpsCount"></span> FPS
+    </div>
 </div>
 <div id="zoom-panel" aria-label="Zoom Panel">
     <div class="zoom-btn zoom-in" onclick="zoomIn(1.2)">

@@ -202,7 +202,9 @@ input[type="checkbox"] {
     pointer-events: none;
 }
 
-#renderMetrics {
+#performance {
+    display: flex;
+    gap: 12px;
     position: absolute;
     right: 12px;
     bottom: 12px;
@@ -217,6 +219,12 @@ input[type="checkbox"] {
     cursor: default;
     user-select: none;
     -webkit-user-select: none;
+}
+
+.metric-block {
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: var(--button-border-radius);
+    padding: 5px 10px;
 }
 
 #zoom-panel {
