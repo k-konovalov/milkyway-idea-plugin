@@ -30,6 +30,7 @@ class MilkyWaySettings: PersistentStateComponent<MilkyWaySettings.State> {
         var isDevToolsEnabled: Boolean = false,
         var isAnimationEnabled: Boolean = false,
         var isWebGlEnabled: Boolean = true,
+        var isRerenderOnFileOpenEnabled: Boolean = true,
     )
 
     private var state = State()

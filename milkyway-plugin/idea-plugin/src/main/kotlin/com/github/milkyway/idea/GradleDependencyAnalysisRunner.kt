@@ -2,17 +2,20 @@ package com.github.milkyway.idea
 
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.idea.cytoscape.ReportBuilder
+import com.github.milkyway.idea.feature.GraphCutter
 import com.github.milkyway.idea.resolver.DependencyResolver
 import com.github.milkyway.idea.resolver.GradleDependencyResolver
 import com.github.milkyway.idea.resolver.RegexDependencyResolver
 import com.github.milkyway.idea.settings.MilkyWaySettings
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import kotlinx.serialization.json.Json
 import java.io.File
 
 class GradleDependencyAnalysisRunner(
     private val ideaProject: Project,
     private val settings: MilkyWaySettings = MilkyWaySettings.getInstance(),
+    private val srcGradleFile: VirtualFile? = null,
 ) {
     private val json = Json {
         prettyPrint = true
@@ -36,7 +39,10 @@ class GradleDependencyAnalysisRunner(
             println("${module}: [${children}]")
         }
 
-        val cytoscapeReport = ReportBuilder().build(graph)
+        val graphCutter = GraphCutter(ideaProject, graph, srcGradleFile)
+        val shrunkGraph = graphCutter.cut()
+
+        val cytoscapeReport = ReportBuilder().build(shrunkGraph)
 
         return json.encodeToString(cytoscapeReport)
     }
