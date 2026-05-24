@@ -8,6 +8,8 @@ object HtmlRenderer {
         val cytoscapeJs = loadResource("/web/cytoscape.min.js")
         val cytoscapeExpandCollapseJs = loadResource("/web/cytoscape-expand-collapse.min.js")
         val cytoscapeUndoRedo = loadResource("/web/cytoscape-undo-redo.js")
+        val klay = loadResource("/web/klay.js")
+        val cyKlay = loadResource("/web/cytoscape-klay.js")
         val viewJs = loadResource("/web/cytoscape-view.js")
 
         val safeJson = cytoscapeJson.replace("</script>", "<\\/script>")
@@ -19,6 +21,8 @@ object HtmlRenderer {
             .replace("{{MILKYWAY_VIEW_JS}}", viewJs)
             .replace("{{CYTOSCAPE_EXPAND_COLLAPSE_JS}}", cytoscapeExpandCollapseJs)
             .replace("{{CYTOSCAPE_UNDO_REDO_JS}}", cytoscapeUndoRedo)
+            .replace("{{KLAY}}", klay)
+            .replace("{{CYTOSCAPE_KLAY}}", cyKlay)
     }
 
     private fun loadResource(path: String): String {
