@@ -28,6 +28,7 @@
                 anchor="left"
                 icon="/icons/milkyway.svg"
                 factoryClass="com.github.milkyway.idea.toolwindow.SettingsToolWindow"/>
+        <postStartupActivity implementation="com.github.milkyway.idea.StartupActivity"/>
     </extensions>
 
 </idea-plugin>
