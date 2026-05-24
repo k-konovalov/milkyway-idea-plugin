@@ -368,7 +368,6 @@ function mcollapseAllEdges() {
 
 document.addEventListener('keydown', event => {
     const isCtrl = event.ctrlKey || event.metaKey;
-    const zoomFactor = 1.2;
     if (!isCtrl || !event.shiftKey) {
         return;
     }
