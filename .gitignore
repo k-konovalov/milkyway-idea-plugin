@@ -36,3 +36,4 @@ google-services.json
 milkyway-plugin/idea-plugin/src/main/resources/node_modules/*
 milkyway-plugin/idea-plugin/src/main/resources/package-lock.json
 milkyway-plugin/idea-plugin/src/main/resources/package.json
+test/test-project/MILKYWAY_TO_PROD_PROJ/*

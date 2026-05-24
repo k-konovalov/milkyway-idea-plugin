@@ -150,6 +150,7 @@ class ReportBuilder {
         val pluginSettings = CytoscapePluginSettingsDto(
             isAnimationEnabled = settings.state.isAnimationEnabled,
             theme = settings.state.theme,
+            isWebGlEnabled = settings.state.isWebGlEnabled,
         )
         // endregion
 

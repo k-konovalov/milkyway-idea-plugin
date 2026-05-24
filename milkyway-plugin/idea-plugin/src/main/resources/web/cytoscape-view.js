@@ -2,6 +2,7 @@
  * @typedef CytoscapePluginSettingsDto
  * @property {Boolean} isAnimationEnabled
  * @property {String} theme
+ * @property {Boolean} isWebGlEnabled
  */
 /**
  * @typedef CytoscapeShapeSimilarityDto
@@ -73,12 +74,31 @@ const layoutOptions = {
     animate: false
 };
 
+let renderer = {}
+if (pluginSettings.isWebGlEnabled) {
+    /**
+     * {@link https://blog.js.cytoscape.org/2025/01/13/webgl-preview/}
+     */
+    renderer = {
+        name: 'canvas',  // still uses the canvas renderer
+            webgl: true, // turns on WebGL mode
+            showFps: true,
+            webglDebug: true, // (optional) prints debug info to the browser console
+
+            webglTexSize: 4096,
+            webglTexRows: 24,
+            webglBatchSize: 2048,
+            webglTexPerBatch: 16,
+    }
+}
+
 const cy = cytoscape({
     container: document.getElementById("cy"),
     elements: report.elements,
     layout: {
         name: "preset"
     },
+    renderer: renderer,
     selectionType: "additive",
     style: [
         {
@@ -106,6 +126,18 @@ const cy = cytoscape({
                 "line-color": "#8a8a8a",
                 "target-arrow-color": "#8a8a8a"
             }
+        },
+        {
+            selector: 'edge.cy-expand-collapse-collapsed-edge',
+            style:
+                {
+                    "text-outline-color": "#ffffff",
+                    "text-outline-width": "2px",
+                    'label': (e) => {
+                        return '(' + e.data('collapsedEdges').length + ')';
+                    },
+                    'line-style': 'dashed',
+                }
         },
         {
             selector: ".articulationPointHighlight",
@@ -304,6 +336,69 @@ function expandSelected() {
         ec.expandRecursively(selectedEdges);
     }
 }
+
+function collapseEdgesBetweenNodes() {
+    ec.collapseEdgesBetweenNodes(cy.nodes(':selected'), {
+        groupEdgesOfSameTypeOnCollapse: false,
+        allowNestedEdgeCollapse: true,
+    });
+}
+
+function expandEdgesBetweenNodes() {
+    ec.expandEdgesBetweenNodes(cy.nodes(':selected'), {
+        groupEdgesOfSameTypeOnCollapse: false,
+        allowNestedEdgeCollapse: true,
+    });
+}
+
+function mcollapseAllNodes() {
+    ec.collapseAll();
+}
+
+function mexpandAllNodes() {
+    ec.expandAll();
+}
+
+function mcollapseAllEdges() {
+    ec.collapseAllEdges({
+        groupEdgesOfSameTypeOnCollapse: false,
+        allowNestedEdgeCollapse: true,
+    })
+}
+
+document.addEventListener('keydown', event => {
+    const isCtrl = event.ctrlKey || event.metaKey;
+    if (!isCtrl || !event.shiftKey) {
+        return;
+    }
+
+    const expandKeys = [
+        'Equal',
+        'NumpadAdd',
+        'Slash'
+    ];
+    const collapseKeys = [
+        'Minus',
+        'NumpadSubtract',
+        'KeyK'
+    ];
+    const isExpandAll = expandKeys.includes(event.code);
+    const isCollapseAll = collapseKeys.includes(event.code);
+
+    console.log({'event.code': event.code});
+    if (isExpandAll || isCollapseAll) {
+        event.preventDefault();
+    } else {
+        return;
+    }
+
+    if (isExpandAll) {
+        mexpandAllNodes();
+    } else if (isCollapseAll) {
+        mcollapseAllNodes();
+    }
+});
+
 
 cy.on('tap', 'node, edge', event => {
     const originalEvent = event.originalEvent;
@@ -665,7 +760,7 @@ function applyGroupVisibility() {
 
     updateGroupOverlays();
 }
-
+// region Overlay
 function clearGroupOverlays() {
     const overlay = document.getElementById("groupOverlay");
     overlay.innerHTML = "";
@@ -811,3 +906,40 @@ window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
 });
+
+/**
+ * @param {Number} spacing
+ */
+function applyKlayLayout(spacing) {
+    cy.layout({
+        name: 'klay',
+
+        klay: {
+            direction: 'RIGHT',
+            spacing: spacing
+        },
+
+        animate: false,
+        fit: true,
+        padding: 40
+    }).run();
+}
+
+// endregion
+// region FPS
+const fpsEl = document.getElementById('fpsCount')
+let last = performance.now();
+let frames = 0;
+
+function tick(now) {
+    ++frames;
+    const elapsed = now - last;
+    if (elapsed >= 1000) {
+        fpsEl.textContent = (frames * 1000 / elapsed).toFixed(0);
+        frames = 0;
+        last = now;
+    }
+    requestAnimationFrame(tick);
+}
+requestAnimationFrame(tick);
+// endregion

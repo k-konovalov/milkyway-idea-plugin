@@ -13,6 +13,11 @@
     <button onclick="addCompound()">Compound</button>
     <button onclick="collapseSelected()">Collapse</button>
     <button onclick="expandSelected()">Expand</button>
+    <button onclick="collapseEdgesBetweenNodes()">Collapse edges between nodes</button>
+    <button onclick="expandEdgesBetweenNodes()">Expand edges between nodes</button>
+    <button onclick="mcollapseAllNodes()">Collapse all nodes</button>
+    <button onclick="mcollapseAllEdges()">Collapse all edges</button>
+    <button onclick="applyKlayLayout(15)">Klay layout</button>
 
     <button class="iconButton" title="Rotate left 90°" onclick="rotateGraph(-90)">↺</button>
     <button class="iconButton" title="Rotate right 90°" onclick="rotateGraph(90)">↻</button>
@@ -79,8 +84,13 @@
     <div id="shapeSimilarityLegendBody" style="display: none;"></div>
 </div>
 
-<div id="renderMetrics" aria-label="Render time">
-    Render: <span id="renderTime">–</span> ms
+<div id="performance">
+    <div class="metric-block" id="renderMetrics" aria-label="Render time">
+        Render: <span id="renderTime">–</span> ms
+    </div>
+    <div class="metric-block" id="fpsMetrics" aria-label="FPS">
+        <span id="fpsCount">-</span> FPS
+    </div>
 </div>
 <div id="zoom-panel" aria-label="Zoom Panel">
     <div class="zoom-btn zoom-in" onclick="zoomIn(1.2)">
@@ -109,6 +119,12 @@
 
 <script>
     {{CYTOSCAPE_JS}}
+</script>
+<script>
+    {{KLAY}}
+</script>
+<script>
+    {{CYTOSCAPE_KLAY}}
 </script>
 <script>
     {{CYTOSCAPE_EXPAND_COLLAPSE_JS}}
