@@ -2,6 +2,7 @@
  * @typedef CytoscapePluginSettingsDto
  * @property {Boolean} isAnimationEnabled
  * @property {String} theme
+ * @property {Boolean} isWebGlEnabled
  */
 /**
  * @typedef CytoscapeShapeSimilarityDto
@@ -73,23 +74,31 @@ const layoutOptions = {
     animate: false
 };
 
+let renderer = {}
+if (pluginSettings.isWebGlEnabled) {
+    /**
+     * {@link https://blog.js.cytoscape.org/2025/01/13/webgl-preview/}
+     */
+    renderer = {
+        name: 'canvas',  // still uses the canvas renderer
+            webgl: true, // turns on WebGL mode
+            showFps: true,
+            webglDebug: true, // (optional) prints debug info to the browser console
+
+            webglTexSize: 4096,
+            webglTexRows: 24,
+            webglBatchSize: 2048,
+            webglTexPerBatch: 16,
+    }
+}
+
 const cy = cytoscape({
     container: document.getElementById("cy"),
     elements: report.elements,
     layout: {
         name: "preset"
     },
-    renderer: {
-        name: 'canvas',  // still uses the canvas renderer
-        webgl: true, // turns on WebGL mode
-        showFps: true,
-        webglDebug: true, // (optional) prints debug info to the browser console
-
-        webglTexSize: 4096,
-        webglTexRows: 24,
-        webglBatchSize: 2048,
-        webglTexPerBatch: 16,
-    },
+    renderer: renderer,
     selectionType: "additive",
     style: [
         {

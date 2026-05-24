@@ -54,6 +54,9 @@ class SettingsToolWindow : ToolWindowFactory {
             form.add(CheckboxRow("Enable DevTools", settings.state.isDevToolsEnabled) {
                 settings.state.isDevToolsEnabled = it
             }, gbc(y++))
+            form.add(CheckboxRow("Enable WebGL", settings.state.isWebGlEnabled) {
+                settings.state.isWebGlEnabled = it
+            }, gbc(y++))
             form.add(CheckboxRow("Enable Animation", settings.state.isAnimationEnabled) {
                 settings.state.isAnimationEnabled = it
             }, gbc(y++))

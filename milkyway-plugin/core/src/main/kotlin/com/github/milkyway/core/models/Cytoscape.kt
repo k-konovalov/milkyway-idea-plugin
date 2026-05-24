@@ -55,5 +55,6 @@ data class CytoscapeShapeSimilarityDto(
 @Serializable
 data class CytoscapePluginSettingsDto(
     val isAnimationEnabled: Boolean = false,
-    val theme: String = "Black"
+    val theme: String = "Black",
+    val isWebGlEnabled: Boolean = true
 )
