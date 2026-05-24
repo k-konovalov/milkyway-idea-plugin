@@ -714,7 +714,7 @@ function applyGroupVisibility() {
 
     updateGroupOverlays();
 }
-
+// region Overlay
 function clearGroupOverlays() {
     const overlay = document.getElementById("groupOverlay");
     overlay.innerHTML = "";
@@ -861,6 +861,25 @@ window.addEventListener("resize", () => {
     updateGroupOverlays();
 });
 
+/**
+ * @param {Number} spacing
+ */
+function applyKlayLayout(spacing) {
+    cy.layout({
+        name: 'klay',
+
+        klay: {
+            direction: 'RIGHT',
+            spacing: spacing
+        },
+
+        animate: false,
+        fit: true,
+        padding: 40
+    }).run();
+}
+
+// endregion
 // region FPS
 const fpsEl = document.getElementById('fpsCount')
 let last = performance.now();
