@@ -66,6 +66,9 @@ class SettingsToolWindow : ToolWindowFactory {
             form.add(SelectRow("Theme [not implemented]", listOf(THEME_BLACK, THEME_WHITE, THEME_COLORED,), settings.state.theme) {
                 settings.state.theme = it
             }, gbc(y++))
+            form.add(CheckboxRow("Enable grouping on load", settings.state.isGroupOnLoadEnabled) {
+                settings.state.isGroupOnLoadEnabled = it
+            }, gbc(y++))
             form.add(CheckboxRow("Enable grouping by regions [not implemented]", settings.state.isGroupingByRegionEnabled) {
                 settings.state.isGroupingByRegionEnabled = it
             }, gbc(y++))
