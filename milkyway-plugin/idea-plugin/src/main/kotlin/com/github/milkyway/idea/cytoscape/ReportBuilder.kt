@@ -151,6 +151,7 @@ class ReportBuilder {
             isAnimationEnabled = settings.state.isAnimationEnabled,
             theme = settings.state.theme,
             isWebGlEnabled = settings.state.isWebGlEnabled,
+            isGroupOnLoadEnabled = settings.state.isGroupOnLoadEnabled
         )
         // endregion
 
