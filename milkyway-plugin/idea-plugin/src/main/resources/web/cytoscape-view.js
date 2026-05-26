@@ -3,6 +3,7 @@
  * @property {Boolean} isAnimationEnabled
  * @property {String} theme
  * @property {Boolean} isWebGlEnabled
+ * @property {Boolean} isGroupOnLoadEnabled
  */
 /**
  * @typedef CytoscapeShapeSimilarityDto
@@ -210,6 +211,10 @@ function buildInitialLayout() {
         renderShapeSimilarityLegend();
 
         updateRenderTime(renderStartedAt);
+        if (pluginSettings.isGroupOnLoadEnabled) {
+            mcollapseAllNodes();
+            mcollapseAllEdges();
+        }
         console.log("Graph is initialized");
     });
 
