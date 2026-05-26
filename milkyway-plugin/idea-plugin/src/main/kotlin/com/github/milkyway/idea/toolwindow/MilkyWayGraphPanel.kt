@@ -3,6 +3,7 @@ package com.github.milkyway.idea.toolwindow
 import com.github.milkyway.idea.cytoscape.HtmlRenderer
 import com.github.milkyway.idea.milkyWayReportService
 import com.github.milkyway.idea.settings.MilkyWaySettings
+import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.jcef.JBCefBrowser
 import java.awt.BorderLayout
@@ -13,7 +14,9 @@ import javax.swing.SwingUtilities
 
 class MilkyWayGraphPanel(
     project: Project
-) : JPanel(BorderLayout()) {
+) : JPanel(BorderLayout()), Disposable {
+    private var browser: JBCefBrowser = JBCefBrowser()
+    private val settings = MilkyWaySettings.getInstance()
 
     init {
         val cachedJson = project.milkyWayReportService().loadCached()
@@ -38,15 +41,17 @@ class MilkyWayGraphPanel(
     }
 
     private fun createGraphPanel(json: String): JComponent {
-        val browser = JBCefBrowser()
         browser.loadHTML(HtmlRenderer.render(json))
 
-        val settings = MilkyWaySettings.getInstance()
         if (settings.state.isDevToolsEnabled) {
             SwingUtilities.invokeLater {
                 browser.openDevtools()
             }
         }
         return browser.component
+    }
+
+    override fun dispose() {
+        browser.dispose()
     }
 }
