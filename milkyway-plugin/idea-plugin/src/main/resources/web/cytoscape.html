@@ -33,6 +33,11 @@
     </label>
 
     <label class="toolbarGroup">
+        <input id="nodeLabelCheckbox" type="checkbox" onchange="applyNodeLabelVisibility()">
+        <span>Show labels</span>
+    </label>
+
+    <label class="toolbarGroup">
         <input id="articulationPointsCheckbox" type="checkbox" onchange="applyArticulationPointVisibility()">
         <span>Show articulation points</span>
     </label>
@@ -116,6 +121,7 @@
 
 <div id="cy"></div>
 <div id="groupOverlay"></div>
+<div id="nodeLabelOverlay"></div>
 
 <script>
     {{CYTOSCAPE_JS}}

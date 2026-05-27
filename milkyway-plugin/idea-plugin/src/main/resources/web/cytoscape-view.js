@@ -765,6 +765,17 @@ function applyGroupVisibility() {
 
     updateGroupOverlays();
 }
+
+function applyNodeLabelVisibility() {
+    const enabled = document.getElementById("nodeLabelCheckbox").checked;
+
+    if (!enabled) {
+        clearNodeOverlays();
+        return;
+    }
+
+    updateNodeOverlays();
+}
 // region Overlay
 function clearGroupOverlays() {
     const overlay = document.getElementById("groupOverlay");
@@ -820,6 +831,36 @@ function updateGroupOverlays() {
         groupBox.appendChild(label);
         overlay.appendChild(groupBox);
     });
+}
+
+function clearNodeOverlays() {
+    const nodeLabelOverlay = document.getElementById('nodeLabelOverlay');
+    nodeLabelOverlay.innerText = '';
+}
+
+function updateNodeOverlays() {
+    const checkboxEl = document.getElementById("nodeLabelCheckbox");
+    if (!checkboxEl.checked) {
+        return;
+    }
+    const overlayEl = document.getElementById('nodeLabelOverlay');
+    overlayEl.innerHTML = '';
+
+    let i = 0;
+    const nodes = cy.nodes(':visible');
+    console.log({'visible nodes': nodes});
+    nodes.forEach(node => {
+        if (node.isParent()) {
+            return;
+        }
+        const {x, y} = node.renderedPosition()
+        const nodeLabelEl = document.createElement('div');
+        nodeLabelEl.className = 'groupBoxLabel';
+        nodeLabelEl.style.left = `${x}px`;
+        nodeLabelEl.style.top = `${y}px`;
+        nodeLabelEl.innerText = node.data('label');
+        overlayEl.appendChild(nodeLabelEl);
+    })
 }
 
 function startGroupDrag(event, group) {
@@ -901,6 +942,7 @@ function stopGroupDrag() {
 
 cy.on("pan zoom render", () => {
     updateGroupOverlays();
+    updateNodeOverlays();
 });
 
 cy.ready(() => {
