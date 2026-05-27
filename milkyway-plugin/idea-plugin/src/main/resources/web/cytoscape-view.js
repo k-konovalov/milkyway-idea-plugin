@@ -776,6 +776,15 @@ function applyNodeLabelVisibility() {
 
     updateNodeOverlays();
 }
+
+function applyEdgeVisibility() {
+    const enabled = document.getElementById('edgeLabelCheckbox').checked;
+    if (!enabled) {
+        clearEdgeOverlays();
+        return;
+    }
+    updateEdgeOverlays();
+}
 // region Overlay
 function clearGroupOverlays() {
     const overlay = document.getElementById("groupOverlay");
@@ -860,7 +869,50 @@ function updateNodeOverlays() {
         nodeLabelEl.style.top = `${y}px`;
         nodeLabelEl.innerText = node.data('label');
         overlayEl.appendChild(nodeLabelEl);
-    })
+    });
+}
+
+function clearEdgeOverlays() {
+    const overlayEl = document.getElementById('edgeLabelOverlay');
+    overlayEl.innerHTML = '';
+}
+
+/**
+ * @param {EdgeSingular} edge
+ */
+function getEdgeLabel(edge) {
+    if (edge.hasClass('cy-expand-collapse-collapsed-edge')) {
+        const collapsed = edge.data('collapsedEdges');
+        return `(${collapsed.length})`;
+    }
+    return edge.data('label');
+}
+
+function updateEdgeOverlays() {
+    const checkboxEl = document.getElementById('edgeLabelCheckbox');
+    if (!checkboxEl.checked) {
+        return;
+    }
+    const overlayEl = document.getElementById('edgeLabelOverlay');
+    overlayEl.innerHTML = '';
+
+    const edges = cy.edges(':visible');
+    console.log({'edges': edges});
+    edges.forEach(edge => {
+        const label = getEdgeLabel(edge);
+        if (!label) {
+            return;
+        }
+        console.log({'edge label': label});
+        const {x, y} = edge.renderedMidpoint();
+        const edgeLabelEl = document.createElement('div');
+        edgeLabelEl.className = 'groupBoxLabel';
+        edgeLabelEl.style.fontStyle = '4px'
+        edgeLabelEl.style.left = `${x}px`;
+        edgeLabelEl.style.top = `${y}px`;
+        edgeLabelEl.innerText = label;
+        overlayEl.appendChild(edgeLabelEl);
+    });
 }
 
 function startGroupDrag(event, group) {
@@ -943,6 +995,7 @@ function stopGroupDrag() {
 cy.on("pan zoom render", () => {
     updateGroupOverlays();
     updateNodeOverlays();
+    updateEdgeOverlays();
 });
 
 cy.ready(() => {
@@ -952,6 +1005,8 @@ cy.ready(() => {
 window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
+    updateNodeOverlays();
+    updateEdgeOverlays();
 });
 
 /**
