@@ -1,0 +1,30 @@
+name: Build Milkyway Plugin
+
+# Controls when the workflow will run
+on:
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'jetbrains'
+      - name: Build IDEA plugin
+        run: |
+          cd milkyway-plugin
+          chmod +x gradlew
+          ./gradlew :idea-plugin:buildPlugin --no-configuration-cache
+          find ./idea-plugin/build/distributions -name "*.zip"
+      - name: check
+        run: ls /idea-plugin/build/distributions
+
+      # ls ~/.m2/repository
