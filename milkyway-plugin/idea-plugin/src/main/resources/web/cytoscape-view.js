@@ -128,6 +128,7 @@ const cy = cytoscape({
                 "target-arrow-color": "#8a8a8a"
             }
         },
+        /**
         {
             selector: 'edge.cy-expand-collapse-collapsed-edge',
             style:
@@ -139,7 +140,7 @@ const cy = cytoscape({
                     },
                     'line-style': 'dashed',
                 }
-        },
+        },*/
         {
             selector: ".articulationPointHighlight",
             style: {
@@ -878,7 +879,7 @@ function clearEdgeOverlays() {
 }
 
 /**
- * @param {EdgeSingular} edge
+ * @param {cytoscape.EdgeSingular} edge
  */
 function getEdgeLabel(edge) {
     if (edge.hasClass('cy-expand-collapse-collapsed-edge')) {
@@ -906,7 +907,7 @@ function updateEdgeOverlays() {
         console.log({'edge label': label});
         const {x, y} = edge.renderedMidpoint();
         const edgeLabelEl = document.createElement('div');
-        edgeLabelEl.className = 'groupBoxLabel';
+        edgeLabelEl.className = 'edgeBoxLabel';
         edgeLabelEl.style.fontStyle = '4px'
         edgeLabelEl.style.left = `${x}px`;
         edgeLabelEl.style.top = `${y}px`;
