@@ -128,6 +128,7 @@ const cy = cytoscape({
                 "target-arrow-color": "#8a8a8a"
             }
         },
+        /**
         {
             selector: 'edge.cy-expand-collapse-collapsed-edge',
             style:
@@ -139,7 +140,7 @@ const cy = cytoscape({
                     },
                     'line-style': 'dashed',
                 }
-        },
+        },*/
         {
             selector: ".articulationPointHighlight",
             style: {
@@ -765,6 +766,26 @@ function applyGroupVisibility() {
 
     updateGroupOverlays();
 }
+
+function applyNodeLabelVisibility() {
+    const enabled = document.getElementById("nodeLabelCheckbox").checked;
+
+    if (!enabled) {
+        clearNodeOverlays();
+        return;
+    }
+
+    updateNodeOverlays();
+}
+
+function applyEdgeVisibility() {
+    const enabled = document.getElementById('edgeLabelCheckbox').checked;
+    if (!enabled) {
+        clearEdgeOverlays();
+        return;
+    }
+    updateEdgeOverlays();
+}
 // region Overlay
 function clearGroupOverlays() {
     const overlay = document.getElementById("groupOverlay");
@@ -819,6 +840,79 @@ function updateGroupOverlays() {
 
         groupBox.appendChild(label);
         overlay.appendChild(groupBox);
+    });
+}
+
+function clearNodeOverlays() {
+    const nodeLabelOverlay = document.getElementById('nodeLabelOverlay');
+    nodeLabelOverlay.innerText = '';
+}
+
+function updateNodeOverlays() {
+    const checkboxEl = document.getElementById("nodeLabelCheckbox");
+    if (!checkboxEl.checked) {
+        return;
+    }
+    const overlayEl = document.getElementById('nodeLabelOverlay');
+    overlayEl.innerHTML = '';
+
+    let i = 0;
+    const nodes = cy.nodes(':visible');
+    console.log({'visible nodes': nodes});
+    nodes.forEach(node => {
+        if (node.isParent()) {
+            return;
+        }
+        const {x, y} = node.renderedPosition()
+        const nodeLabelEl = document.createElement('div');
+        nodeLabelEl.className = 'groupBoxLabel';
+        nodeLabelEl.style.left = `${x}px`;
+        nodeLabelEl.style.top = `${y}px`;
+        nodeLabelEl.innerText = node.data('label');
+        overlayEl.appendChild(nodeLabelEl);
+    });
+}
+
+function clearEdgeOverlays() {
+    const overlayEl = document.getElementById('edgeLabelOverlay');
+    overlayEl.innerHTML = '';
+}
+
+/**
+ * @param {cytoscape.EdgeSingular} edge
+ */
+function getEdgeLabel(edge) {
+    if (edge.hasClass('cy-expand-collapse-collapsed-edge')) {
+        const collapsed = edge.data('collapsedEdges');
+        return `(${collapsed.length})`;
+    }
+    return edge.data('label');
+}
+
+function updateEdgeOverlays() {
+    const checkboxEl = document.getElementById('edgeLabelCheckbox');
+    if (!checkboxEl.checked) {
+        return;
+    }
+    const overlayEl = document.getElementById('edgeLabelOverlay');
+    overlayEl.innerHTML = '';
+
+    const edges = cy.edges(':visible');
+    console.log({'edges': edges});
+    edges.forEach(edge => {
+        const label = getEdgeLabel(edge);
+        if (!label) {
+            return;
+        }
+        console.log({'edge label': label});
+        const {x, y} = edge.renderedMidpoint();
+        const edgeLabelEl = document.createElement('div');
+        edgeLabelEl.className = 'edgeBoxLabel';
+        edgeLabelEl.style.fontStyle = '4px'
+        edgeLabelEl.style.left = `${x}px`;
+        edgeLabelEl.style.top = `${y}px`;
+        edgeLabelEl.innerText = label;
+        overlayEl.appendChild(edgeLabelEl);
     });
 }
 
@@ -901,6 +995,8 @@ function stopGroupDrag() {
 
 cy.on("pan zoom render", () => {
     updateGroupOverlays();
+    updateNodeOverlays();
+    updateEdgeOverlays();
 });
 
 cy.ready(() => {
@@ -910,6 +1006,8 @@ cy.ready(() => {
 window.addEventListener("resize", () => {
     fitStable();
     updateGroupOverlays();
+    updateNodeOverlays();
+    updateEdgeOverlays();
 });
 
 /**
