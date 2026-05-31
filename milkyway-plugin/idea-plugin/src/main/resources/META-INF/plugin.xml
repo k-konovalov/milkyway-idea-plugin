@@ -29,6 +29,7 @@
                 icon="/icons/milkyway.svg"
                 factoryClass="com.github.milkyway.idea.toolwindow.SettingsToolWindow"/>
         <postStartupActivity implementation="com.github.milkyway.idea.StartupActivity"/>
+        <fileEditorProvider implementation="com.github.milkyway.idea.editor.MilkywaySplitEditorProvider" />
     </extensions>
 
 </idea-plugin>
