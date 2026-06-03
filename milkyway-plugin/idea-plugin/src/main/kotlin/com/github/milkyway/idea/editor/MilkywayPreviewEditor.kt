@@ -20,11 +20,9 @@ import javax.swing.SwingUtilities
 
 class MilkywayPreviewEditor(
     private val project: Project,
-    private val file: VirtualFile,
 ): UserDataHolderBase(), FileEditor {
     private val panel = JPanel(BorderLayout())
     private val browser = JBCefBrowser()
-    private val document = FileDocumentManager.getInstance().getDocument(file) ?: error("Document not found")
     private val settings = MilkyWaySettings.getInstance()
 
     init {

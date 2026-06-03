@@ -12,10 +12,13 @@ import com.intellij.openapi.project.DumbAware
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.ui.Messages.showErrorDialog
 import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.platform.ide.progress.ModalTaskOwner.project
 import org.jetbrains.annotations.NonNls
 import java.io.File
 
 class MilkywaySplitEditorProvider: FileEditorProvider, DumbAware {
+    private var previewEditor: MilkywayPreviewEditor? = null
+
     private companion object {
         val SEARCH_FILES = listOf("settings.gradle.kts", "build.gradle.kts")
     }
@@ -30,8 +33,10 @@ class MilkywaySplitEditorProvider: FileEditorProvider, DumbAware {
         project: Project,
         file: VirtualFile
     ): FileEditor {
-        val previewEditor = MilkywayPreviewEditor(project, file)
-        val splitEditor = MilkywaySplitEditor(project, file, previewEditor)
+        if (previewEditor == null) {
+            previewEditor = MilkywayPreviewEditor(project)
+        }
+        val splitEditor = MilkywaySplitEditor(project, file, previewEditor!!)
         ProgressManager.getInstance().run(
             object: Task.Backgroundable(
                 project, "Analyzing Gradle dependencies", true
@@ -39,10 +44,11 @@ class MilkywaySplitEditorProvider: FileEditorProvider, DumbAware {
                 override fun run(indicator: ProgressIndicator) {
                     val basePath = project.basePath ?: return
                     val projectDir = File(basePath)
+                    val rootFile = if (file.name == "settings.gradle.kts") { null } else { file }
                     try {
                         indicator.text = "Running Gradle analysis"
-                        val cyJson = GradleDependencyAnalysisRunner(project, srcGradleFile = file).run(projectDir)
-                        previewEditor.reload(cyJson)
+                        val cyJson = GradleDependencyAnalysisRunner(project, srcGradleFile = rootFile).run(projectDir)
+                        previewEditor!!.reload(cyJson)
                     } catch (e: Exception) {
                         ApplicationManager.getApplication().invokeLater {
                             showErrorDialog(

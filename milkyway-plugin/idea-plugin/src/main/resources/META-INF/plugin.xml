@@ -18,11 +18,11 @@
     </actions>
 
     <extensions defaultExtensionNs="com.intellij">
-        <toolWindow
+        <!--<toolWindow
                 id="MilkyWay"
                 anchor="right"
                 icon="/icons/milkyway.svg"
-                factoryClass="com.github.milkyway.idea.toolwindow.MilkyWayToolWindowFactory"/>
+                factoryClass="com.github.milkyway.idea.toolwindow.MilkyWayToolWindowFactory"/>-->
         <toolWindow
                 id="MilkyWay Settings"
                 anchor="left"
