@@ -17,8 +17,6 @@ import org.jetbrains.annotations.NonNls
 import java.io.File
 
 class MilkywaySplitEditorProvider: FileEditorProvider, DumbAware {
-    private var previewEditor: MilkywayPreviewEditor? = null
-
     private companion object {
         val SEARCH_FILES = listOf("settings.gradle.kts", "build.gradle.kts")
     }
@@ -33,34 +31,10 @@ class MilkywaySplitEditorProvider: FileEditorProvider, DumbAware {
         project: Project,
         file: VirtualFile
     ): FileEditor {
-        if (previewEditor == null) {
-            previewEditor = MilkywayPreviewEditor(project)
-        }
-        val splitEditor = MilkywaySplitEditor(project, file, previewEditor!!)
-        ProgressManager.getInstance().run(
-            object: Task.Backgroundable(
-                project, "Analyzing Gradle dependencies", true
-            ) {
-                override fun run(indicator: ProgressIndicator) {
-                    val basePath = project.basePath ?: return
-                    val projectDir = File(basePath)
-                    val rootFile = if (file.name == "settings.gradle.kts") { null } else { file }
-                    try {
-                        indicator.text = "Running Gradle analysis"
-                        val cyJson = GradleDependencyAnalysisRunner(project, srcGradleFile = rootFile).run(projectDir)
-                        previewEditor!!.reload(cyJson)
-                    } catch (e: Exception) {
-                        ApplicationManager.getApplication().invokeLater {
-                            showErrorDialog(
-                                project,
-                                e.message ?: "Unknown error",
-                                "Milkyway Dependency Analysis Failed"
-                                )
-                        }
-                    }
-                }
-            }
-        )
+        val previewEditor = MilkywayPreviewEditor(project, file)
+        val splitEditor = MilkywaySplitEditor(project, file, previewEditor)
+        val startupGraphAnalysis = StartupGraphAnalysis(project, file, previewEditor)
+        startupGraphAnalysis.run()
         return splitEditor
     }
 
