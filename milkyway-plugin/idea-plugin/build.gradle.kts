@@ -1,7 +1,6 @@
 plugins {
     kotlin("jvm")
     id("org.jetbrains.intellij.platform")
-    `maven-publish`
 }
 
 kotlin {
@@ -52,23 +51,3 @@ tasks.processResources {
     dependsOn(generateMilkywayInitScript)
     from(layout.buildDirectory.dir("generated/resources"))
 }
-
-/*
-publishing {
-    repositories {
-        maven {
-            name = "LocalMaven"
-            url = uri("~/.m2/repository")
-        }
-    }
-    publications {
-        create<MavenPublication>("release") {
-            groupId = "com.github.milkyway"      // ваши координаты
-            artifactId = "idea"             // имя библиотеки
-            version = "0.0.1"                 // версия
-            afterEvaluate {
-                from(components["release"])
-            }
-        }
-    }
-}*/
