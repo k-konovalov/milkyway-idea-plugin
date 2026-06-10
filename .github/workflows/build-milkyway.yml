@@ -1,18 +1,14 @@
 name: Build Milkyway Plugin
 
-# Controls when the workflow will run
 on:
   pull_request:
     branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
         with:
@@ -24,29 +20,3 @@ jobs:
           cd milkyway-plugin
           chmod +x gradlew
           ./gradlew :idea-plugin:buildPlugin --no-configuration-cache
-          ABS_FILE_PATH=$(find ./idea-plugin/build/distributions -name "*.zip" | head -n 1 | xargs realpath)
-          FILE_NAME=$(basename "$ABS_FILE_PATH")
-          FILE_NAME=${FILE_NAME:0:-4}
-          echo "file_name=$FILE_NAME" >> $GITHUB_OUTPUT
-          echo "file_abs_path=$ABS_FILE_PATH" >> $GITHUB_OUTPUT
-      - name: Check if artifact exist
-        run: ls ./milkyway-plugin/idea-plugin/build/distributions
-      - name: Check output
-        run: |
-          echo "${{ steps.artifact.outputs.file_name }}"
-          echo "${{ steps.artifact.outputs.file_abs_path }}"
-      # Store an already-built plugin as an artifact for downloading
-      - name: Upload artifact
-        id: artifact-upload-step
-        uses: actions/upload-artifact@v7
-        with:
-          name: ${{ steps.artifact.outputs.file_name }}
-          path: ${{ steps.artifact.outputs.file_abs_path }}
-          archive: false
-          if-no-files-found: error
-          overwrite: true
-          retention-days: 7
-      - name: Output artifact ID
-        run: echo 'Artifact ID is ${{ steps.artifact-upload-step.outputs.artifact-id }}'
-      - name: Output artifact URL
-        run: echo 'Artifact URL is ${{ steps.artifact-upload-step.outputs.artifact-url }}'
