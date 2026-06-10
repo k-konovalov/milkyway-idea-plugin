@@ -4,6 +4,7 @@ import com.intellij.openapi.project.Project
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.idea.resolver.DependencyResolver
 import com.intellij.openapi.application.ReadAction
+import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
@@ -31,13 +32,13 @@ class RegexDependencyResolver(
         val result = mutableMapOf<String, MutableList<String>>()
         val settingsFile = findSettingsFile(project)
         val includeModules = settingsFile
-            ?.readText()
+            ?.getLatestText()
             ?.let {parseSettingsDeps(it).toSet()}
             ?: emptySet()
 
         val gradleFiles = findGradleFiles(project)
         for (file in gradleFiles) {
-            val text = file.readText()
+            val text = file.getLatestText()
             val moduleName = moduleNameFromFile(project, file).removePrefix(":")
             val dependencies = parseModuleDeps(text).map { it.second }
             dependencies
@@ -82,8 +83,14 @@ class RegexDependencyResolver(
         return result
     }
 
+    @Deprecated("Reading virtual file might not get latest real version because cache is not invalidated")
     private fun VirtualFile.readText(): String {
         return String(this.contentsToByteArray(), Charsets.UTF_8)
+    }
+
+    private fun VirtualFile.getLatestText(): String {
+        val document = FileDocumentManager.getInstance().getCachedDocument(this)
+        return document?.text ?: String(this.contentsToByteArray(), Charsets.UTF_8)
     }
 
     private  fun parseSettingsDeps(settingsText: String): List<String> {
