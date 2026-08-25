@@ -17,6 +17,5 @@ jobs:
       - name: Build IDEA plugin
         id: artifact
         run: |
-          cd milkyway-plugin
           chmod +x gradlew
           ./gradlew :idea-plugin:buildPlugin --no-configuration-cache
