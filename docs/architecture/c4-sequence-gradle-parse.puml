@@ -1,0 +1,67 @@
+@startuml c4-sequence-gradle-parse
+title C4 — Sequence: GradleDependencyResolver.resolve() via init-script
+
+participant "GradleDependency\nAnalysisRunner" as runner
+participant "GradleDependency\nResolver" as gdr
+participant "Classpath\n(milkyway-init.gradle)" as classpath
+participant "Temp file\n(milkyway-init-*.gradle)" as tmp
+participant "ExternalSystemUtil" as ext
+participant "CountDownLatch\n+ AtomicReference" as latch
+participant "Gradle Daemon" as gradle
+participant "MilkyWayPlugin" as plugin
+participant "PrintDependenciesTask" as task
+participant "ProjectModulesTraverser" as trav
+participant "DependencyGraph\n(in Gradle JVM)" as gGraph
+participant "GraphDependencyMapper" as mapper
+participant "build/reports/milkyway/\n<graph>.json" as jsonFile
+participant "DependencyGraph\n(in IDE JVM)" as ideGraph
+
+runner -> gdr : resolve()
+activate gdr
+
+gdr -> gdr : reportDir.deleteRecursively() if exists
+gdr -> classpath : getResourceAsStream("milkyway-init.gradle")
+classpath --> gdr : InputStream
+gdr -> tmp : createTempFile + copyTo
+tmp --> gdr : File initScript
+
+gdr -> ext : runTask(settings, EXECUTOR, ideaProject, GRADLE, callback, IN_BACKGROUND_ASYNC, true)
+note right of ext
+  settings.taskNames = [":milkywayDependencyGraph"]
+  scriptParameters = --init-script <initScript> --stacktrace --info
+  vmOptions = -Didea.home.path=<PathManager.homePath>
+end note
+ext -> gradle : start Gradle build with init-script
+
+gradle -> plugin : apply(rootProject)
+plugin -> task : register(":milkywayDependencyGraph")
+
+gradle -> task : execute (TaskAction)
+activate task
+task -> gGraph : new DependencyGraph()
+loop for each subproject in rootProject.allprojects
+    task -> trav : traverse(subproject, graph)
+    trav -> gGraph : addEdge(parent, child) for ProjectComponentIdentifier deps
+end
+task -> mapper : toDto(graph)
+mapper --> task : DependencyGraphDto
+task -> jsonFile : writeText(Json.encodeToString(dto))
+deactivate task
+
+gradle --> ext : task callback (onSuccess/onFailure)
+ext -> latch : countDown()
+
+gdr -> latch : await()
+alt failure captured
+    gdr --> runner : throw RuntimeException("Gradle task failed")
+else success
+    gdr -> jsonFile : readText()
+    gdr -> mapper : fromDto(json)
+    mapper --> gdr : DependencyGraph (IDE side)
+    gdr -> ideGraph : returned
+    gdr -> tmp : delete()
+    gdr --> runner : DependencyGraph
+end
+
+deactivate gdr
+@enduml

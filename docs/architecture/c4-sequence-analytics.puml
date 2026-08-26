@@ -1,0 +1,71 @@
+@startuml c4-sequence-analytics
+title C4 — Sequence: ReportBuilder.build(graph) — analytics pipeline
+
+participant "GradleDependency\nAnalysisRunner" as runner
+participant "ReportBuilder" as rb
+participant "CriticalPathAnalyzer" as cpa
+participant "TarjanSccFinder" as scc
+participant "ArticulationPoints\nAnalyzer" as apa
+participant "GraphShapeMatcher" as gsm
+participant "ShapeMatcher" as sm
+participant "ShapeManager" as smgr
+participant "MilkyWaySettings" as settings
+participant "CytoscapeReportDto" as dto
+
+runner -> rb : build(graph)
+activate rb
+
+rb -> cpa : findCriticalPaths(graph)
+activate cpa
+cpa -> scc : find()
+activate scc
+scc -> scc : Tarjan (indexMap, lowLinkMap, stack)
+scc --> cpa : List<StronglyConnectedComponent>
+deactivate scc
+cpa -> cpa : condenseGraph(graph) → CondensedGraph (DAG)
+cpa -> cpa : topological sort + longest-path DP
+cpa -> cpa : restore all paths (predecessors)
+cpa --> rb : CriticalPathsResult\n(longestPathLength, componentPaths, expandedPaths, condensedGraph)
+deactivate cpa
+
+rb -> apa : findArticulationPoints()
+activate apa
+apa -> apa : iterative DFS on undirected view\n(tin, low, childrenCount)
+apa --> rb : Set<Node>
+deactivate apa
+
+rb -> gsm : calculate(graph)
+activate gsm
+gsm -> gsm : asAcyclic() — DFS breaks back edges
+gsm -> gsm : buildLayerProfile(dag)\n(reverse-adj topo → counts per layer)
+gsm -> sm : calculate(layerProfile)
+activate sm
+loop for each Shape in [TRIANGLE, INVERSE_TRIANGLE, RECTANGLE, RHOMBUS, MIDDLE_BOTTLENECK]
+    sm -> sm : shape.getBaseProfile(targetLength=32)
+    sm -> smgr : similarityPercent(profile, base, 32)
+    smgr -> smgr : resampleLinear + normalize + cosineSimilarity
+    smgr --> sm : percent
+end
+sm --> gsm : Map<Shape, Double>
+deactivate sm
+gsm --> rb : Map<Shape, Double>
+deactivate gsm
+
+rb -> rb : compute critical nodes / edges (from expandedPaths + adjacency)
+rb -> rb : distinct modules sorted by id
+rb -> rb : group modules by 'prefix before :' → CytoscapeGroupDto
+rb -> rb : build CytoscapeElementDto: nodes / edges / group nodes
+rb -> settings : read state (theme, animation, WebGL, groupOnLoad)
+rb -> dto : new CytoscapeReportDto(summary, elements, criticalPaths, groups, shapeSimilarities, pluginSettings)
+rb --> runner : CytoscapeReportDto
+deactivate rb
+
+runner -> runner : Json.encodeToString(dto)
+
+note over rb,dto
+  Ordering is deterministic:
+  modules sorted by id, edges by (source, target),
+  groups by id — so cached JSON diffs cleanly.
+end note
+
+@enduml

@@ -1,0 +1,73 @@
+@startuml c3-text-to-graph
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
+
+title Milkyway — C3 Components: text → DependencyGraph
+
+System_Ext(sys_ide, "IntelliJ Platform")
+System_Ext(sys_gradle, "Gradle Build System")
+
+Container_Boundary(cont_visualizer, "Visualizer (idea-plugin)") {
+    Component(comp_split_provider, "MilkywaySplitEditorProvider", "FileEditorProvider", "Accepts settings.gradle.kts / build.gradle.kts, wires PreviewEditor + StartupGraphAnalysis")
+    Component(comp_preview_editor, "MilkywayPreviewEditor", "FileEditor + DocumentListener", "Owns JBCefBrowser, debounces edits via Alarm, does lightweight regex diff to skip no-op edits")
+    Component(comp_split_editor, "MilkywaySplitEditor", "TextEditorWithPreview", "Composes text editor + preview editor")
+    Component(comp_startup_analysis, "StartupGraphAnalysis", "Task.Backgroundable launcher", "Runs analysis in background, forwards result / error to preview")
+    Component(comp_action, "AnalyzeDependenciesAction", "DumbAwareAction", "Tools menu entry, targets ToolWindow variant")
+    Component(comp_file_listener, "GradleFileListener", "FileEditorManagerListener", "Re-runs analysis on file open when setting enabled")
+}
+
+Container_Boundary(cont_parser, "Parser / Resolver") {
+    Component(comp_runner, "GradleDependencyAnalysisRunner", "Kotlin orchestrator", "Picks resolver by MilkyWaySettings.parser; runs GraphCutter; delegates to ReportBuilder; returns JSON")
+    Component(comp_dep_resolver, "DependencyResolver", "interface", "resolve(): DependencyGraph")
+    Component(comp_regex_resolver, "RegexDependencyResolver", "Kotlin", "ReadAction over VFS; regexes for include(...) and impl(project(...)); filters by settings include set")
+    Component(comp_gradle_resolver, "GradleDependencyResolver", "Kotlin", "Materialises milkyway-init.gradle; runs :milkywayDependencyGraph via ExternalSystemUtil; deserialises DependencyGraphDto")
+}
+
+Container_Boundary(cont_engine, "Graph Engine (post-parse)") {
+    Component(comp_cutter, "GraphCutter", "Kotlin", "BFS shrink of DependencyGraph starting from currently-edited module")
+}
+
+Container_Boundary(cont_gradle_plugin, "gradle-plugin (runs inside Gradle daemon)") {
+    Component(comp_plugin, "MilkyWayPlugin", "Plugin<Project>", "Registers :milkywayDependencyGraph task")
+    Component(comp_print_task, "PrintDependenciesTask", "DefaultTask", "Traverses all subprojects, writes DependencyGraphDto JSON to build/reports/milkyway/")
+    Component(comp_project_trav, "ProjectModulesTraverser", "DependencyTraverser", "ResolutionResult walk; keeps only ProjectComponentIdentifier edges")
+    Component(comp_all_trav, "AllDependenciesTraverser", "DependencyTraverser", "(unused by task now) walk including external module ids")
+}
+
+Container_Boundary(cont_shared, "Shared Models (core)") {
+    Component(comp_graph, "DependencyGraph / Node / EdgeVisit", "domain", "Adjacency LinkedHashMap<Node, LinkedHashSet<Node>>")
+    Component(comp_mapper, "GraphDependencyMapper", "object", "DependencyGraph ↔ DependencyGraphDto")
+    Component(comp_settings, "MilkyWaySettings", "PersistentStateComponent", "parser=Gradle|RegEx and other UI toggles")
+    Component(comp_const, "MilkyWayConstants", "object", "Task name, report filenames")
+}
+
+Rel(sys_ide, comp_split_provider, "createEditor(project, file)")
+Rel(comp_split_provider, comp_preview_editor, "instantiates")
+Rel(comp_split_provider, comp_split_editor, "composes with text editor")
+Rel(comp_split_provider, comp_startup_analysis, "first-time render")
+Rel(comp_preview_editor, comp_startup_analysis, "on debounced document change")
+Rel(comp_action, comp_runner, "triggers analysis (tool window variant)")
+Rel(comp_file_listener, comp_runner, "on file opened (setting)")
+
+Rel(comp_startup_analysis, comp_runner, "run(projectDir): cyJson")
+Rel(comp_runner, comp_settings, "reads state.parser")
+Rel(comp_runner, comp_dep_resolver, "resolve()")
+Rel(comp_regex_resolver, comp_dep_resolver, "implements")
+Rel(comp_gradle_resolver, comp_dep_resolver, "implements")
+
+Rel(comp_regex_resolver, sys_ide, "VfsUtilCore + FileDocumentManager (ReadAction)")
+Rel(comp_gradle_resolver, sys_gradle, "ExternalSystemUtil.runTask + init-script")
+Rel(sys_gradle, comp_plugin, "applies plugin (via init-script)")
+Rel(comp_plugin, comp_print_task, "registers task")
+Rel(comp_print_task, comp_project_trav, "traverse(subproject, graph)")
+Rel(comp_project_trav, comp_graph, "populates")
+Rel(comp_print_task, comp_mapper, "toDto(graph)")
+Rel(comp_print_task, comp_const, "task name, output file")
+Rel(comp_gradle_resolver, comp_mapper, "fromDto(json)")
+
+Rel(comp_runner, comp_cutter, "cut(): trimmed DependencyGraph")
+Rel(comp_cutter, comp_graph, "BFS")
+
+Rel(comp_runner, comp_graph, "returned graph → next stage (ReportBuilder in graph-to-report)")
+
+SHOW_LEGEND()
+@enduml

@@ -1,0 +1,24 @@
+@startuml c1-context
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Context.puml
+
+title Milkyway IDEA Plugin — C1 System Context
+
+Person(dev, "Mobile Developer", "Editing build.gradle.kts / settings.gradle.kts")
+
+System(sys_milkyway, "Milkyway IDEA Plugin", "Parses Gradle module dependencies and renders a live graph in the editor split view")
+
+System_Ext(sys_ide, "IntelliJ Platform", "Host runtime: Editor / VFS / ProgressManager / ToolWindow / PersistentStateComponent")
+System_Ext(sys_gradle, "Gradle Build System", "Executes :milkywayDependencyGraph task via ExternalSystemUtil + init-script")
+System_Ext(sys_jcef, "JCEF (Chromium)", "Embedded browser used to render Cytoscape.js HTML")
+System_Ext(sys_fs, "Filesystem", "Sources: *.gradle.kts. Cache: PathManager.getSystemDir()/milkyway/<projectHash>/")
+
+Rel(dev, sys_ide, "Edits Gradle files, triggers 'Analyze Gradle Dependencies'")
+Rel(sys_ide, sys_milkyway, "Loads plugin, calls FileEditorProvider / Actions / StartupActivity")
+
+Rel(sys_milkyway, sys_ide, "Reads VFS, schedules background tasks, opens tool windows")
+Rel(sys_milkyway, sys_gradle, "Runs analysis task with init-script (kotlinx.serialization JSON as transport)")
+Rel(sys_milkyway, sys_jcef, "Loads HTML with embedded Cytoscape report JSON")
+Rel(sys_milkyway, sys_fs, "Reads *.gradle.kts, writes/reads cached cytoscape report")
+
+SHOW_LEGEND()
+@enduml

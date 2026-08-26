@@ -1,0 +1,56 @@
+@startuml c4-sequence-open-file
+title C4 — Sequence: Opening build.gradle.kts triggers first render
+
+actor Developer as dev
+participant "IntelliJ\nFileEditorManager" as ide
+participant "MilkywaySplitEditor\nProvider" as provider
+participant "MilkywayPreviewEditor" as preview
+participant "MilkywaySplitEditor" as split
+participant "StartupGraphAnalysis" as startup
+participant "ProgressManager\n(Task.Backgroundable)" as bg
+participant "GradleDependency\nAnalysisRunner" as runner
+participant "DependencyResolver\n(Regex|Gradle)" as resolver
+participant "GraphCutter" as cutter
+participant "ReportBuilder" as report
+participant "HtmlRenderer" as html
+participant "JBCefBrowser" as browser
+
+dev -> ide : open build.gradle.kts
+ide -> provider : accept(project, file)
+provider --> ide : true (name in [settings|build].gradle.kts)
+ide -> provider : createEditor(project, file)
+provider -> preview : new (project, file)
+activate preview
+preview -> preview : parseModuleDeps + parseSettingsDeps (regex snapshot)
+preview -> preview : reload(null) → placeholder HTML
+preview -> browser : loadHTML("Run Tools → …")
+provider -> split : new (project, file, preview)
+provider -> startup : new (project, file, preview)
+provider -> startup : run()
+
+startup -> bg : run Task.Backgroundable
+activate bg
+bg -> runner : run(projectDir)
+activate runner
+runner -> resolver : resolve()
+resolver --> runner : DependencyGraph
+runner -> cutter : cut()  // shrink from currently-edited module
+cutter --> runner : DependencyGraph (trimmed)
+runner -> report : build(graph)
+report --> runner : CytoscapeReportDto
+runner --> bg : json (kotlinx.serialization)
+deactivate runner
+bg -> preview : reload(json)  // invokeLater implicit via callback
+preview -> html : render(json)
+html --> preview : HTML with embedded libs + JSON
+preview -> browser : loadHTML(html)
+deactivate bg
+
+note over preview,browser
+  Preview editor is now live.
+  DocumentListener will drive
+  the edit-debounce sequence.
+end note
+deactivate preview
+
+@enduml

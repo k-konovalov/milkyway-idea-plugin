@@ -1,0 +1,50 @@
+@startuml c4-sequence-regex-parse
+title C4 — Sequence: RegexDependencyResolver.resolve()
+
+participant "GradleDependency\nAnalysisRunner" as runner
+participant "RegexDependencyResolver" as regex
+participant "IntelliJ VFS\n(ReadAction)" as vfs
+participant "FileDocumentManager" as fdm
+participant "DependencyGraph" as graph
+
+runner -> regex : resolve()
+activate regex
+regex -> vfs : ReadAction.compute { … }
+activate vfs
+
+vfs -> regex : findSettingsFile(project)
+regex -> vfs : project.baseDir.findChild("settings.gradle.kts")
+regex -> fdm : getCachedDocument(settings)
+fdm --> regex : Document? (fallback: raw bytes)
+regex -> regex : includeRegex.findAll → includeModules: Set
+
+vfs -> regex : findGradleFiles(project)
+regex -> vfs : VfsUtilCore.visitChildrenRecursively\n(skip /build/ and /.gradle/)
+vfs --> regex : List<VirtualFile>  // all build.gradle.kts
+
+loop for each build.gradle.kts
+    regex -> fdm : getCachedDocument(file)
+    fdm --> regex : text
+    regex -> regex : moduleName = ":relative:path"
+    regex -> regex : dependencyRegex.findAll → List<Pair(scope, module)>
+    regex -> graph : addEdge(moduleName, dep) for each
+end
+
+alt includeModules is not empty
+    regex -> regex : keep only edges where\n both endpoints ∈ includeModules
+    regex -> regex : drop modules with no incoming reference
+    regex -> graph : addEdge for filtered set
+end
+
+vfs --> regex : DependencyGraph
+deactivate vfs
+regex --> runner : DependencyGraph
+deactivate regex
+
+note over regex,fdm
+  Uses cached Document to see
+  in-memory unsaved edits — critical
+  for live preview during typing.
+end note
+
+@enduml

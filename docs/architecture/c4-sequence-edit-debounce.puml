@@ -1,0 +1,45 @@
+@startuml c4-sequence-edit-debounce
+title C4 — Sequence: Debounced re-render on document edit
+
+actor Developer as dev
+participant "IntelliJ Editor\n(Document)" as doc
+participant "MilkywayPreviewEditor" as preview
+participant "Alarm\n(POOLED_THREAD)" as alarm
+participant "StartupGraphAnalysis" as startup
+participant "GradleDependency\nAnalysisRunner" as runner
+participant "HtmlRenderer + JBCefBrowser" as ui
+
+dev -> doc : type / edit
+doc -> preview : documentChanged(event)
+activate preview
+preview -> preview : text = event.document.text
+preview -> preview : newDepSet = parseModuleDeps(text)
+preview -> preview : newIncludeSet = parseSettingsDeps(text)
+
+alt sets unchanged
+    preview --> doc : return (no work)
+else sets changed
+    preview -> preview : cache new sets
+    preview -> alarm : cancelAllRequests()
+    preview -> alarm : addRequest(1000ms) { StartupGraphAnalysis.run() }
+end
+
+...1000 ms of quiet typing...
+
+alarm -> startup : fire()
+activate startup
+startup -> runner : run(projectDir)
+runner --> startup : cyJson
+startup -> preview : reload(cyJson)
+deactivate startup
+
+preview -> ui : render + loadHTML
+deactivate preview
+
+note over preview,alarm
+  Early-exit before scheduling avoids
+  a Gradle round-trip on formatting-only
+  edits or comment changes.
+end note
+
+@enduml
