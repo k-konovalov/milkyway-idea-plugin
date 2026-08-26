@@ -1,12 +1,10 @@
 # Gradle files
 .gradle/
 build/
+.kotlin/
 
 # Local configuration file (sdk path, etc)
 local.properties
-
-# Log/OS Files
-*.log
 
 # Android Studio generated files and folders
 captures/
@@ -22,6 +20,9 @@ output-metadata.json
 misc.xml
 deploymentTargetDropDown.xml
 render.experimental.xml
+
+# IntelliJ plugin
+.intellijPlatform/
 
 # Keystore files
 *.jks
