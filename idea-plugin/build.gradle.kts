@@ -11,10 +11,9 @@ repositories {
     mavenCentral()
     gradlePluginPortal()
 
-    maven {
-        url = uri("https://repo.gradle.org/gradle/libs-releases")
-    }
-
+    maven { setUrl("https://repo.gradle.org/gradle/libs-releases") }
+    maven { setUrl("https://www.jetbrains.com/intellij-repository/releases") }
+    maven { setUrl("https://jitpack.io") }
     intellijPlatform {
         defaultRepositories()
     }
@@ -24,7 +23,9 @@ dependencies {
     implementation(project(":core"))
 
     intellijPlatform {
-        intellijIdea("2025.1")
+        intellijIdea("2025.1") {
+            useInstaller = false
+        }
         bundledPlugin("com.intellij.gradle")
     }
 
