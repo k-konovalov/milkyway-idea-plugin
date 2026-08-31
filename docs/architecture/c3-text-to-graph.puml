@@ -15,11 +15,14 @@ Container_Boundary(cont_visualizer, "Visualizer (idea-plugin)") {
     Component(comp_file_listener, "GradleFileListener", "FileEditorManagerListener", "Re-runs analysis on file open when setting enabled")
 }
 
-Container_Boundary(cont_parser, "Parser / Resolver") {
-    Component(comp_runner, "GradleDependencyAnalysisRunner", "Kotlin orchestrator", "Picks resolver by MilkyWaySettings.parser; runs GraphCutter; delegates to ReportBuilder; returns JSON")
-    Component(comp_dep_resolver, "DependencyResolver", "interface", "resolve(): DependencyGraph")
+Container_Boundary(cont_parser, "Parser / Resolver (idea-plugin/resolver)") {
+    Component(comp_runner, "GradleDependencyAnalysisRunner", "Kotlin orchestrator", "Picks resolver by MilkyWaySettings.parser; runs GraphCutter; delegates to AnalysisPipeline + CytoscapeVisualizer; returns HTML string")
     Component(comp_regex_resolver, "RegexDependencyResolver", "Kotlin", "ReadAction over VFS; regexes for include(...) and impl(project(...)); filters by settings include set")
     Component(comp_gradle_resolver, "GradleDependencyResolver", "Kotlin", "Materialises milkyway-init.gradle; runs :milkywayDependencyGraph via ExternalSystemUtil; deserialises DependencyGraphDto")
+}
+
+Container_Boundary(cont_core_resolver, "Shared (core/resolver)") {
+    Component(comp_dep_resolver, "DependencyResolver", "interface", "resolve(): DependencyGraph")
 }
 
 Container_Boundary(cont_engine, "Graph Engine (post-parse)") {
@@ -48,7 +51,7 @@ Rel(comp_preview_editor, comp_startup_analysis, "on debounced document change")
 Rel(comp_action, comp_runner, "triggers analysis (tool window variant)")
 Rel(comp_file_listener, comp_runner, "on file opened (setting)")
 
-Rel(comp_startup_analysis, comp_runner, "run(projectDir): cyJson")
+Rel(comp_startup_analysis, comp_runner, "run(projectDir): html")
 Rel(comp_runner, comp_settings, "reads state.parser")
 Rel(comp_runner, comp_dep_resolver, "resolve()")
 Rel(comp_regex_resolver, comp_dep_resolver, "implements")
@@ -67,7 +70,7 @@ Rel(comp_gradle_resolver, comp_mapper, "fromDto(json)")
 Rel(comp_runner, comp_cutter, "cut(): trimmed DependencyGraph")
 Rel(comp_cutter, comp_graph, "BFS")
 
-Rel(comp_runner, comp_graph, "returned graph → next stage (ReportBuilder in graph-to-report)")
+Rel(comp_runner, comp_graph, "returned graph → AnalysisPipeline + CytoscapeVisualizer (graph-to-report)")
 
 SHOW_LEGEND()
 @enduml

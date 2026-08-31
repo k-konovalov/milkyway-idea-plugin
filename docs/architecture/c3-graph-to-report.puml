@@ -1,57 +1,72 @@
 @startuml c3-graph-to-report
 !include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Component.puml
 
-title Milkyway — C3 Components: DependencyGraph → CytoscapeReport → HTML
+title Milkyway — C3 Components: DependencyGraph → GraphAnalysisResult → HTML
 
-Container_Boundary(cont_visualizer, "Visualizer") {
-    Component(comp_report_builder, "ReportBuilder", "Kotlin", "Aggregates analytics into CytoscapeReportDto; groups nodes by 'groupId:module' prefix; marks critical / articulation")
-    Component(comp_html_renderer, "HtmlRenderer", "object", "Loads /web/*.{html,css,js} from classpath; substitutes {{MILKYWAY_*}} placeholders with report JSON")
-    Component(comp_preview, "MilkywayPreviewEditor", "FileEditor", "reload(json) → JBCefBrowser.loadHTML")
-    Component(comp_report_svc, "MilkyWayReportService", "@Service(PROJECT)", "Caches latest JSON to disk under systemDir/milkyway/<projectHash>/")
-    Component(comp_tool_panel, "MilkyWayGraphPanel", "JCEF panel", "ToolWindow variant of the visualizer")
+Container_Boundary(cont_idea, "idea-plugin") {
+    Component(comp_pipeline, "AnalysisPipeline", "Kotlin (coroutines)", "Runs all GraphAnalyzer<R> in parallel via async/awaitAll; assembles GraphAnalysisResult keyed by result KClass")
+    Component(comp_preview, "MilkywayPreviewEditor", "FileEditor", "reload(html) → JBCefBrowser.loadHTML; html string comes directly from CytoscapeVisualizer")
+    Component(comp_report_svc, "MilkyWayReportService", "@Service(PROJECT)", "Caches latest rendered HTML string to disk under systemDir/milkyway/<projectHash>/")
+    Component(comp_tool_panel, "MilkyWayGraphPanel", "JCEF panel", "ToolWindow variant; reload(html) → JBCefBrowser.loadHTML")
 }
 
-Container_Boundary(cont_engine, "Graph Engine") {
-    Component(comp_critical, "CriticalPathAnalyzer", "Kotlin", "1) condense via SCC; 2) topo-sort DAG; 3) longest path")
-    Component(comp_tarjan, "TarjanSccFinder", "Kotlin", "Recursive Tarjan; returns List<StronglyConnectedComponent>")
-    Component(comp_artic, "ArticulationPointsAnalyzer", "Kotlin", "Iterative DFS on undirected view; tin/low bookkeeping")
-    Component(comp_shape_matcher, "GraphShapeMatcher", "Kotlin", "asAcyclic() (DFS cycle break) → buildLayerProfile (topo layers → counts)")
-    Component(comp_shape, "ShapeMatcher", "Kotlin", "For each Shape.getBaseProfile(targetLen=32) → similarity map")
-    Component(comp_shape_mgr, "ShapeManager", "Kotlin", "resampleLinear, normalize, cosineSimilarity")
+Container_Boundary(cont_algo_api, "algorithm:api") {
+    Component(comp_analyzer_iface, "GraphAnalyzer<R>", "interface", "suspend fun analyze(graph: DependencyGraph): R")
+    Component(comp_result_iface, "AnalyzerResult", "interface", "+ nested class Empty<T>")
+    Component(comp_analysis_result, "GraphAnalysisResult", "class (visualizer:api)", "graph: DependencyGraph + Map<KClass, AnalyzerResult>; get(klass) → result or Empty")
 }
 
-Container_Boundary(cont_shared, "Shared Models") {
-    Component(comp_graph, "DependencyGraph", "domain")
+Container_Boundary(cont_algo_cp, "algorithm:critical-path") {
+    Component(comp_critical, "CriticalPathAnalyzer", "GraphAnalyzer<CriticalPathResult>", "analyze(): condense via SCC; topo-sort DAG; longest path DP")
+    Component(comp_tarjan, "TarjanSccFinder", "internal Kotlin", "Iterative Tarjan; returns List<StronglyConnectedComponent>")
+    Component(comp_cp_result, "CriticalPathResult", ": AnalyzerResult", "longestPathLength, expandedPaths: List<List<Set<Node>>>")
+}
+
+Container_Boundary(cont_algo_ap, "algorithm:articulation-points") {
+    Component(comp_artic, "ArticulationPointsAnalyzer", "GraphAnalyzer<ArticulationPointsResult>", "analyze(): iterative DFS on undirected view; tin/low bookkeeping")
+    Component(comp_ap_result, "ArticulationPointsResult", ": AnalyzerResult", "points: Set<Node>")
+}
+
+Container_Boundary(cont_algo_sm, "algorithm:shape-matching") {
+    Component(comp_shape_matcher, "GraphShapeMatcher", "GraphAnalyzer<ShapeMatchResult>", "analyze(): asAcyclic() → buildLayerProfile (topo layers) → ShapeMatcher")
+    Component(comp_shape, "ShapeMatcher", "internal Kotlin", "For each Shape.getBaseProfile(32) → ShapeManager.similarityPercent")
+    Component(comp_shape_mgr, "ShapeManager", "internal Kotlin", "resampleLinear, normalize, cosineSimilarity")
+    Component(comp_sm_result, "ShapeMatchResult", ": AnalyzerResult", "similarities: Map<Shape, Double>")
+}
+
+Container_Boundary(cont_vis, "visualizer:cytoscape") {
+    Component(comp_cy_vis, "CytoscapeVisualizer", ": Visualizer", "render(GraphAnalysisResult): unpacks result types → CytoscapeReportDto → Json.encodeToString → embeds in HTML template")
+    Component(comp_web, "Web bundle (resources/web/*)", "classpath resources", "cytoscape.html+css, cytoscape.min.js, klay, expand-collapse, undo-redo, cytoscape-view.js")
+}
+
+Container_Boundary(cont_shared, "Shared Models (core)") {
+    Component(comp_graph, "DependencyGraph / Node", "domain")
     Component(comp_cytoscape_dto, "CytoscapeReportDto family", "@Serializable", "summary, elements[], groups[], criticalPaths[], shapeSimilarities[], cytoscapePluginSettings")
     Component(comp_shape_enum, "Shape enum", "domain", "TRIANGLE / INVERSE_TRIANGLE / RECTANGLE / RHOMBUS / MIDDLE_BOTTLENECK")
     Component(comp_settings, "MilkyWaySettings.State", "domain", "theme, isAnimationEnabled, isWebGlEnabled, isGroupOnLoadEnabled…")
 }
 
-Container_Boundary(cont_web, "Web bundle (resources/web/*)") {
-    Component(comp_html, "cytoscape.html + css", "template", "Placeholders for JSON and scripts")
-    Component(comp_cy, "cytoscape.min.js + klay + expand-collapse + undo-redo", "JS libs")
-    Component(comp_view, "cytoscape-view.js", "JS glue", "Consumes CytoscapePluginSettings + report elements")
-}
+Rel(comp_pipeline, comp_critical, "async { analyze(graph) }")
+Rel(comp_pipeline, comp_artic, "async { analyze(graph) }")
+Rel(comp_pipeline, comp_shape_matcher, "async { analyze(graph) }")
+Rel(comp_pipeline, comp_analysis_result, "assembles GraphAnalysisResult")
 
-Rel(comp_report_builder, comp_graph, "input")
-Rel(comp_report_builder, comp_critical, "findCriticalPaths(graph)")
 Rel(comp_critical, comp_tarjan, "find(): SCCs")
-Rel(comp_critical, comp_graph, "reads adjacency")
-Rel(comp_report_builder, comp_artic, "findArticulationPoints()")
-Rel(comp_report_builder, comp_shape_matcher, "calculate(graph)")
-Rel(comp_shape_matcher, comp_shape, "calculate(profile)")
-Rel(comp_shape, comp_shape_enum, "getBaseProfile(targetLen)")
+Rel(comp_critical, comp_cp_result, "returns")
+Rel(comp_artic, comp_ap_result, "returns")
+Rel(comp_shape_matcher, comp_shape, "calculate(layerProfile)")
 Rel(comp_shape, comp_shape_mgr, "similarityPercent")
-Rel(comp_report_builder, comp_settings, "reads plugin settings")
-Rel(comp_report_builder, comp_cytoscape_dto, "produces")
+Rel(comp_shape, comp_shape_enum, "getBaseProfile(32)")
+Rel(comp_shape_matcher, comp_sm_result, "returns")
 
-Rel(comp_cytoscape_dto, comp_preview, "kotlinx.serialization JSON string")
-Rel(comp_preview, comp_html_renderer, "render(json)")
-Rel(comp_html_renderer, comp_html, "loads template")
-Rel(comp_html_renderer, comp_cy, "embeds libs")
-Rel(comp_html_renderer, comp_view, "embeds view logic")
-Rel(comp_preview, comp_report_svc, "(via action path) update(json)")
-Rel(comp_report_svc, comp_tool_panel, "reload(json) if attached")
+Rel(comp_cy_vis, comp_analysis_result, "get(CriticalPathResult::class) etc.")
+Rel(comp_cy_vis, comp_settings, "reads CytoscapePluginSettingsDto")
+Rel(comp_cy_vis, comp_cytoscape_dto, "produces CytoscapeReportDto")
+Rel(comp_cy_vis, comp_web, "loads template; embeds libs + JSON")
+
+Rel(comp_cy_vis, comp_preview, "VisualizationOutput.Browser.Html(content)")
+Rel(comp_preview, comp_report_svc, "(via action path) update(html)")
+Rel(comp_report_svc, comp_tool_panel, "reload(html) if attached")
 
 SHOW_LEGEND()
 @enduml

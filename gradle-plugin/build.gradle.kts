@@ -1,9 +1,9 @@
 plugins {
-    kotlin("jvm")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinSerialization)
     `java-gradle-plugin`
     `maven-publish`
-    id("com.gradle.plugin-publish") version "2.0.0"
+    alias(libs.plugins.pluginPublish)
 }
 group = "io.github.milkyway.gradle"
 version = "0.1.0"
@@ -14,7 +14,7 @@ kotlin {
 
 dependencies {
     implementation(project(":core"))
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
+    implementation(libs.kotlinxSerializationJson)
 }
 
 gradlePlugin {

@@ -59,24 +59,6 @@ class DependencyGraph {
 
 }
 
-data class StronglyConnectedComponent(
-    val id: Int,
-    val nodes: Set<Node>,
-)
-
-data class CondensedGraph(
-    val components: List<StronglyConnectedComponent>,
-    val adjacency: Map<Int, Set<Int>>,
-    val nodeToComponentId: Map<Node, Int>,
-)
-
-data class CriticalPathsResult(
-    val longestPathLength: Int,
-    val componentPaths: List<List<Int>>,
-    val expandedPaths: List<List<Set<Node>>>,
-    val condensedGraph: CondensedGraph,
-)
-
 @Serializable
 data class DependencyGraphDto(
     val nodes: List<NodeDto>,

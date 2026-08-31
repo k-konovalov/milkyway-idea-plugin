@@ -1,6 +1,5 @@
 package com.github.milkyway.idea.toolwindow
 
-import com.github.milkyway.idea.cytoscape.HtmlRenderer
 import com.github.milkyway.idea.milkyWayReportService
 import com.github.milkyway.idea.settings.MilkyWaySettings
 import com.intellij.openapi.Disposable
@@ -23,10 +22,10 @@ class MilkyWayGraphPanel(
         reload(cachedJson)
     }
 
-    fun reload(json: String?) {
+    fun reload(html: String?) {
         removeAll()
 
-        if (json == null) {
+        if (html == null) {
             add(JLabel("Run Tools → Analyze Gradle Dependencies first."), BorderLayout.CENTER)
 
             revalidate()
@@ -34,14 +33,14 @@ class MilkyWayGraphPanel(
             return
         }
 
-        add(createGraphPanel(json), BorderLayout.CENTER)
+        add(createGraphPanel(html), BorderLayout.CENTER)
 
         revalidate()
         repaint()
     }
 
-    private fun createGraphPanel(json: String): JComponent {
-        browser.loadHTML(HtmlRenderer.render(json))
+    private fun createGraphPanel(html: String): JComponent {
+        browser.loadHTML(html)
 
         if (settings.state.isDevToolsEnabled) {
             SwingUtilities.invokeLater {

@@ -26,3 +26,12 @@ dependencyResolutionManagement {
 include(":core")
 include(":gradle-plugin")
 include(":idea-plugin")
+
+include(":algorithm:api")
+include(":algorithm:critical-path")
+include(":algorithm:articulation-points")
+include(":algorithm:shape-matching")
+
+include(":visualizer:api")
+include(":visualizer:cytoscape:api")
+include(":visualizer:cytoscape:impl")

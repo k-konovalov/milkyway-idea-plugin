@@ -4,7 +4,7 @@ import com.github.milkyway.core.MilkyWayConstants
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.mapper.GraphDependencyMapper
 import com.github.milkyway.core.models.DependencyGraphDto
-import com.github.milkyway.idea.resolver.DependencyResolver
+import com.github.milkyway.core.resolver.DependencyResolver
 import com.intellij.execution.executors.DefaultRunExecutor
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.externalSystem.model.execution.ExternalSystemTaskExecutionSettings

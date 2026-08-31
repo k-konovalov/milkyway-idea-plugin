@@ -1,0 +1,22 @@
+- features
+  - algorithm
+    - api
+    - {other_algo_modules}
+      - api (models, DTOs)
+      - impl (implementation)
+  - visualizer
+    - api
+    - {other_visualizer_modules}
+      - api (models, DTOs)
+      - impl (implementation)
+  - parser
+    - api
+    - {other_parser_modules}
+      - api (models, DTOs)
+      - impl (implementation)
+- core
+- test
+  - {other_test_gradle_projects}
+- plugins
+  - idea-plugin
+  - gradle-plugin

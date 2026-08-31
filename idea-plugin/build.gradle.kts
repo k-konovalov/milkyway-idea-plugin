@@ -1,7 +1,9 @@
 plugins {
-    kotlin("jvm")
-    id("org.jetbrains.intellij.platform")
+    alias(libs.plugins.kotlin)
+    alias(libs.plugins.intelliJPlatform)
 }
+
+group = "com.github.milkyway"
 
 kotlin {
     jvmToolchain(17)
@@ -21,6 +23,13 @@ repositories {
 
 dependencies {
     implementation(project(":core"))
+    implementation(project(":algorithm:api"))
+    implementation(project(":algorithm:critical-path"))
+    implementation(project(":algorithm:articulation-points"))
+    implementation(project(":algorithm:shape-matching"))
+    implementation(project(":visualizer:api"))
+    implementation(project(":visualizer:cytoscape:api"))
+    implementation(project(":visualizer:cytoscape:impl"))
 
     intellijPlatform {
         intellijIdea("2025.1") {
@@ -29,9 +38,9 @@ dependencies {
         bundledPlugin("com.intellij.gradle")
     }
 
-    implementation("org.gradle:gradle-tooling-api:9.5.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.1")
-    runtimeOnly("org.slf4j:slf4j-simple:2.0.17")
+    implementation(libs.gradleToolingApi)
+    implementation(libs.kotlinxSerializationJson)
+    runtimeOnly(libs.slf4jSimple)
 }
 
 

@@ -12,33 +12,37 @@ System_Ext(sys_fs, "Filesystem")
 
 System_Boundary(sys_milkyway, "Milkyway IDEA Plugin") {
 
-    Container(cont_parser, "Parser / Resolver", "Kotlin (idea-plugin/resolver + gradle-plugin)", "Turns build.gradle.kts text (or Gradle model) into DependencyGraph. Two strategies: Regex, Gradle-task.")
+    Container(cont_parser, "Parser / Resolver", "Kotlin (idea-plugin/resolver + gradle-plugin)", "Turns build.gradle.kts text (or Gradle model) into DependencyGraph. Two strategies: Regex, Gradle-task. DependencyResolver interface lives in core/resolver/.")
 
-    Container(cont_engine, "Graph Engine", "Kotlin (core/analyzer + core/shape + idea-plugin/feature)", "SCC (Tarjan), critical paths (topo DAG), articulation points, shape matching (cosine on layer profile), subgraph cut.")
+    Container(cont_algorithm, "Algorithm Pipeline", "Kotlin (algorithm:api, algorithm:critical-path, algorithm:articulation-points, algorithm:shape-matching)", "Parallel GraphAnalyzer<R> pipeline via coroutines: SCC (Tarjan) → critical paths (topo DAG), articulation points, shape matching (cosine on layer profile). Each analyzer returns an AnalyzerResult; AnalysisPipeline aggregates into GraphAnalysisResult.")
 
-    Container(cont_visualizer, "Visualizer", "Kotlin + JS (idea-plugin/editor + cytoscape + resources/web/*)", "Builds Cytoscape report, renders HTML, hosts JBCefBrowser inside the split-editor. ToolWindow variant available.")
+    Container(cont_engine, "Graph Feature", "Kotlin (idea-plugin/feature)", "GraphCutter: BFS subgraph shrink from the currently-edited module. Runs before the algorithm pipeline.")
 
-    ContainerDb(cont_shared, "Shared Models", "Kotlin (core/models + core/mapper)", "DependencyGraph, DTOs (DependencyGraphDto, CytoscapeReportDto, Shape…), GraphDependencyMapper.")
+    Container(cont_visualizer, "Visualizer", "Kotlin + JS (visualizer:api, visualizer:cytoscape, web/*)", "CytoscapeVisualizer: renders GraphAnalysisResult → CytoscapeReportDto → embeds in HTML template ({{placeholders}}). Hosts JBCefBrowser inside split-editor and ToolWindow.")
 
-    Container(cont_report_svc, "Report Service + Settings", "Kotlin (idea-plugin/MilkyWayReportService, settings)", "Caches latest cytoscape JSON on disk, propagates updates to tool window panel; PersistentStateComponent for user preferences.")
+    ContainerDb(cont_shared, "Shared Models", "Kotlin (core/models + core/mapper + core/resolver)", "DependencyGraph, Node, EdgeVisit, DTOs (DependencyGraphDto, CytoscapeReportDto, Shape…), GraphDependencyMapper, DependencyResolver interface.")
+
+    Container(cont_report_svc, "Report Service + Settings", "Kotlin (idea-plugin/MilkyWayReportService, settings)", "Caches latest rendered HTML on disk, propagates updates to tool window panel; PersistentStateComponent for user preferences.")
 }
 
 Rel(dev, sys_ide, "Opens *.gradle.kts, edits, triggers action")
 Rel(sys_ide, cont_visualizer, "FileEditorProvider, Action, StartupActivity")
 Rel(sys_ide, cont_report_svc, "Service lookup, PersistentStateComponent storage")
 
-Rel(cont_visualizer, cont_parser, "Requests DependencyResolver.resolve()")
+Rel(cont_visualizer, cont_parser, "DependencyResolver.resolve()")
 Rel(cont_parser, sys_fs, "Reads settings.gradle.kts / build.gradle.kts via VFS")
 Rel(cont_parser, sys_gradle, "GradleDependencyResolver runs :milkywayDependencyGraph via ExternalSystemUtil + init-script")
 Rel(sys_gradle, sys_fs, "PrintDependenciesTask writes DependencyGraphDto JSON to build/reports/milkyway/")
 Rel(cont_parser, sys_fs, "Reads back Gradle-produced JSON")
 
 Rel(cont_parser, cont_shared, "Produces DependencyGraph / uses GraphDependencyMapper")
-Rel(cont_visualizer, cont_engine, "GraphCutter → ReportBuilder → analyzers")
-Rel(cont_engine, cont_shared, "Consumes/produces DependencyGraph, emits CytoscapeReportDto")
+Rel(cont_visualizer, cont_engine, "GraphCutter.cut() → trimmed DependencyGraph")
+Rel(cont_engine, cont_algorithm, "trimmed graph → AnalysisPipeline.run()")
+Rel(cont_algorithm, cont_shared, "Consumes DependencyGraph; result types reference Node, Shape")
+Rel(cont_algorithm, cont_visualizer, "GraphAnalysisResult → CytoscapeVisualizer.render()")
 
-Rel(cont_visualizer, sys_jcef, "JBCefBrowser.loadHTML(rendered template with report JSON)")
-Rel(cont_visualizer, cont_report_svc, "update(json) on Analyze action; loadCached() on tool window open")
+Rel(cont_visualizer, sys_jcef, "JBCefBrowser.loadHTML(full HTML from CytoscapeVisualizer)")
+Rel(cont_visualizer, cont_report_svc, "update(html) on Analyze action; loadCached() on tool window open")
 Rel(cont_report_svc, sys_fs, "Writes/reads cache under PathManager.getSystemDir()/milkyway/<hash>/")
 
 SHOW_LEGEND()

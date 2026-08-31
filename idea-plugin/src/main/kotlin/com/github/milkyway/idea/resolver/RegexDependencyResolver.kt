@@ -2,7 +2,7 @@ package com.github.milkyway.idea.resolver
 
 import com.intellij.openapi.project.Project
 import com.github.milkyway.core.models.DependencyGraph
-import com.github.milkyway.idea.resolver.DependencyResolver
+import com.github.milkyway.core.resolver.DependencyResolver
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.fileEditor.FileDocumentManager
 import com.intellij.openapi.vfs.VfsUtilCore

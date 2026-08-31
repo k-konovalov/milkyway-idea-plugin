@@ -1,10 +1,13 @@
 plugins {
-    kotlin("jvm") version "2.1.21" apply false
-    kotlin("plugin.serialization") version "2.1.21" apply false
-    id("org.jetbrains.intellij.platform") version "2.16.0" apply false
+    alias(libs.plugins.kotlin) apply false
+    alias(libs.plugins.kotlinSerialization) apply false
+    alias(libs.plugins.intelliJPlatform) apply false
 }
 
+// Each module declares its `group` explicitly in its own build script, scoped
+// per feature (e.g. `com.github.milkyway.algorithm`), so Gradle module
+// identities (`group:name`) stay unique: same-group same-name projects are
+// merged by conflict resolution in shared dependency graphs.
 allprojects {
-    group = "com.github.milkyway"
     version = "0.1.0"
 }

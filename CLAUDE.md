@@ -28,7 +28,7 @@ CI (`build-milkyway.yml`) uses JetBrains JBR JDK 21 to build the plugin, but sou
 
 Three Gradle modules, published in three different ways:
 
-- **`core`** — pure Kotlin, no IntelliJ deps. Data models (`models/*.kt` — `DependencyGraph`, `Cytoscape*Dto`, `Shape`), analyzers (`CriticalPathAnalyzer`, `ArticulationPointsAnalyzer`, `TarjanSccFinder`), shape matching (`shape/*`), and `GraphDependencyMapper` (DTO↔domain). Shared by both other modules — every cross-module data structure lives here. Published as a plain Maven artifact.
+- **`core`** — pure Kotlin, no IntelliJ deps. Data models (`models/*.kt` — `DependencyGraph`, `Cytoscape*Dto`), analyzers (`CriticalPathAnalyzer`, `ArticulationPointsAnalyzer`, `TarjanSccFinder`), shape matching (`shape/*`), and `GraphDependencyMapper` (DTO↔domain). Shared by both other modules — every cross-module data structure lives here. Published as a plain Maven artifact.
 - **`gradle-plugin`** (`io.github.milkyway.gradle`) — Gradle plugin registering the `milkywayAnalyzeDependencies` task (`PrintDependenciesTask`). Runs inside the *user's* Gradle daemon, walks the project's module graph, serializes a `DependencyGraphDto` to `build/reports/milkyway/dependency-graph.json`. Published to Maven Local for dev; distributed via Gradle Plugin Portal (`validate-gradle-plugin-globally` / `publish-gradle-plugin-globally` Make targets).
 - **`idea-plugin`** — IntelliJ Platform plugin (`platformVersion=2025.2.6.1`, `pluginSinceBuild=252`). Uses the IntelliJ Platform Gradle Plugin 2.16.0 (`org.jetbrains.intellij.platform`). Depends on `com.intellij.gradle`.
 

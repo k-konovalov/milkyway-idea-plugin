@@ -1,6 +1,5 @@
 package com.github.milkyway.idea.editor
 
-import com.github.milkyway.idea.cytoscape.HtmlRenderer
 import com.github.milkyway.idea.settings.MilkyWaySettings
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
@@ -62,12 +61,12 @@ class MilkywayPreviewEditor(
         document.addDocumentListener(documentListener)
     }
 
-    fun reload(json: String?) {
-        if (json == null) {
+    fun reload(html: String?) {
+        if (html == null) {
             browser.loadHTML("<html><body>Run Tools → Analyze Gradle Dependencies first.</body></html>")
             return
         }
-        browser.loadHTML(HtmlRenderer.render(json))
+        browser.loadHTML(html)
         if (settings.state.isDevToolsEnabled) {
             SwingUtilities.invokeLater {
                 browser.openDevtools()
