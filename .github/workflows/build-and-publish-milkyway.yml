@@ -17,7 +17,7 @@ jobs:
         run: |
           cd milkyway-plugin
           chmod +x gradlew
-          ./gradlew :idea-plugin:buildPlugin --no-configuration-cache
+          ./gradlew :plugins:idea-plugin:buildPlugin --no-configuration-cache
           ABS_FILE_PATH=$(find ./idea-plugin/build/distributions -name "*.zip" | head -n 1 | xargs realpath)
           FILE_NAME=$(basename "$ABS_FILE_PATH")
           FILE_NAME=${FILE_NAME:0:-4}

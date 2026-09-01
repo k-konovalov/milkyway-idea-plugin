@@ -18,4 +18,4 @@ jobs:
         id: artifact
         run: |
           chmod +x gradlew
-          ./gradlew :idea-plugin:buildPlugin --no-configuration-cache
+          ./gradlew :plugins:idea-plugin:buildPlugin --no-configuration-cache
