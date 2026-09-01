@@ -24,14 +24,20 @@ dependencyResolutionManagement {
 }
 
 include(":core")
-include(":gradle-plugin")
-include(":idea-plugin")
+include(":plugins:gradle-plugin")
+include(":plugins:idea-plugin")
 
-include(":algorithm:api")
-include(":algorithm:critical-path")
-include(":algorithm:articulation-points")
-include(":algorithm:shape-matching")
+include(":features:algorithm:api")
+include(":features:algorithm:articulation-points:api")
+include(":features:algorithm:articulation-points:impl")
+include(":features:algorithm:critical-path:api")
+include(":features:algorithm:critical-path:impl")
+include(":features:algorithm:shape-matching:api")
+include(":features:algorithm:shape-matching:impl")
 
-include(":visualizer:api")
-include(":visualizer:cytoscape:api")
-include(":visualizer:cytoscape:impl")
+include(":features:visualizer:api")
+include(":features:visualizer:cytoscape:api")
+include(":features:visualizer:cytoscape:impl")
+
+include(":features:parser:api")
+include(":features:parser:regex")
