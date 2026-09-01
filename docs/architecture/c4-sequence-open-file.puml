@@ -11,8 +11,7 @@ participant "ProgressManager\n(Task.Backgroundable)" as bg
 participant "GradleDependency\nAnalysisRunner" as runner
 participant "DependencyResolver\n(Regex|Gradle)" as resolver
 participant "GraphCutter" as cutter
-participant "ReportBuilder" as report
-participant "HtmlRenderer" as html
+participant "AnalysisPipeline\n+ CytoscapeVisualizer" as pipeline
 participant "JBCefBrowser" as browser
 
 dev -> ide : open build.gradle.kts
@@ -36,13 +35,11 @@ runner -> resolver : resolve()
 resolver --> runner : DependencyGraph
 runner -> cutter : cut()  // shrink from currently-edited module
 cutter --> runner : DependencyGraph (trimmed)
-runner -> report : build(graph)
-report --> runner : CytoscapeReportDto
-runner --> bg : json (kotlinx.serialization)
+runner -> pipeline : AnalysisPipeline.run(graph) → GraphAnalysisResult\nthen CytoscapeVisualizer.render(result)
+pipeline --> runner : VisualizationOutput.Browser.Html(content)
+runner --> bg : html string
 deactivate runner
-bg -> preview : reload(json)  // invokeLater implicit via callback
-preview -> html : render(json)
-html --> preview : HTML with embedded libs + JSON
+bg -> preview : reload(html)  // invokeLater implicit via callback
 preview -> browser : loadHTML(html)
 deactivate bg
 

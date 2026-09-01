@@ -7,7 +7,7 @@ participant "MilkywayPreviewEditor" as preview
 participant "Alarm\n(POOLED_THREAD)" as alarm
 participant "StartupGraphAnalysis" as startup
 participant "GradleDependency\nAnalysisRunner" as runner
-participant "HtmlRenderer + JBCefBrowser" as ui
+participant "JBCefBrowser" as ui
 
 dev -> doc : type / edit
 doc -> preview : documentChanged(event)
@@ -29,11 +29,15 @@ end
 alarm -> startup : fire()
 activate startup
 startup -> runner : run(projectDir)
-runner --> startup : cyJson
-startup -> preview : reload(cyJson)
+note right of runner
+  pipeline.run(graph) + CytoscapeVisualizer.render()
+  returns full HTML string
+end note
+runner --> startup : html
+startup -> preview : reload(html)
 deactivate startup
 
-preview -> ui : render + loadHTML
+preview -> ui : loadHTML(html)
 deactivate preview
 
 note over preview,alarm

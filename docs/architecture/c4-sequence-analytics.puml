@@ -1,43 +1,51 @@
 @startuml c4-sequence-analytics
-title C4 — Sequence: ReportBuilder.build(graph) — analytics pipeline
+title C4 — Sequence: AnalysisPipeline.run(graph) + CytoscapeVisualizer.render()
 
 participant "GradleDependency\nAnalysisRunner" as runner
-participant "ReportBuilder" as rb
+participant "AnalysisPipeline" as pipeline
 participant "CriticalPathAnalyzer" as cpa
 participant "TarjanSccFinder" as scc
 participant "ArticulationPoints\nAnalyzer" as apa
 participant "GraphShapeMatcher" as gsm
 participant "ShapeMatcher" as sm
 participant "ShapeManager" as smgr
+participant "GraphAnalysisResult" as gar
+participant "CytoscapeVisualizer" as vis
 participant "MilkyWaySettings" as settings
 participant "CytoscapeReportDto" as dto
 
-runner -> rb : build(graph)
-activate rb
+runner -> pipeline : run(graph)  [runBlocking]
+activate pipeline
 
-rb -> cpa : findCriticalPaths(graph)
+note over pipeline
+  coroutineScope { analyzers.map { async { it.analyze(graph) } }.awaitAll() }
+  — all three analyzers run concurrently
+end note
+
+pipeline -> cpa : async { analyze(graph) }
 activate cpa
 cpa -> scc : find()
 activate scc
 scc -> scc : Tarjan (indexMap, lowLinkMap, stack)
 scc --> cpa : List<StronglyConnectedComponent>
 deactivate scc
-cpa -> cpa : condenseGraph(graph) → CondensedGraph (DAG)
+cpa -> cpa : condenseGraph(graph) → CondensedGraph (DAG, internal)
 cpa -> cpa : topological sort + longest-path DP
 cpa -> cpa : restore all paths (predecessors)
-cpa --> rb : CriticalPathsResult\n(longestPathLength, componentPaths, expandedPaths, condensedGraph)
+cpa --> pipeline : CriticalPathResult\n(longestPathLength, expandedPaths)
 deactivate cpa
 
-rb -> apa : findArticulationPoints()
+pipeline -> apa : async { analyze(graph) }
 activate apa
-apa -> apa : iterative DFS on undirected view\n(tin, low, childrenCount)
-apa --> rb : Set<Node>
+apa -> apa : build undirected neighbour map from adjacency
+apa -> apa : iterative DFS (tin, low, childrenCount per component)
+apa --> pipeline : ArticulationPointsResult(points: Set<Node>)
 deactivate apa
 
-rb -> gsm : calculate(graph)
+pipeline -> gsm : async { analyze(graph) }
 activate gsm
 gsm -> gsm : asAcyclic() — DFS breaks back edges
-gsm -> gsm : buildLayerProfile(dag)\n(reverse-adj topo → counts per layer)
+gsm -> gsm : buildLayerProfile(dag)\n(out-degree topo from sinks → counts per layer)
 gsm -> sm : calculate(layerProfile)
 activate sm
 loop for each Shape in [TRIANGLE, INVERSE_TRIANGLE, RECTANGLE, RHOMBUS, MIDDLE_BOTTLENECK]
@@ -48,24 +56,33 @@ loop for each Shape in [TRIANGLE, INVERSE_TRIANGLE, RECTANGLE, RHOMBUS, MIDDLE_B
 end
 sm --> gsm : Map<Shape, Double>
 deactivate sm
-gsm --> rb : Map<Shape, Double>
+gsm --> pipeline : ShapeMatchResult(similarities: Map<Shape, Double>)
 deactivate gsm
 
-rb -> rb : compute critical nodes / edges (from expandedPaths + adjacency)
-rb -> rb : distinct modules sorted by id
-rb -> rb : group modules by 'prefix before :' → CytoscapeGroupDto
-rb -> rb : build CytoscapeElementDto: nodes / edges / group nodes
-rb -> settings : read state (theme, animation, WebGL, groupOnLoad)
-rb -> dto : new CytoscapeReportDto(summary, elements, criticalPaths, groups, shapeSimilarities, pluginSettings)
-rb --> runner : CytoscapeReportDto
-deactivate rb
+pipeline -> gar : GraphAnalysisResult(graph, mapOf(KClass → result))
+pipeline --> runner : GraphAnalysisResult
+deactivate pipeline
 
-runner -> runner : Json.encodeToString(dto)
+runner -> settings : read state → CytoscapePluginSettingsDto
+runner -> vis : CytoscapeVisualizer(pluginSettings).render(analysisResult)
+activate vis
+vis -> gar : get(CriticalPathResult::class)
+vis -> gar : get(ArticulationPointsResult::class)
+vis -> gar : get(ShapeMatchResult::class)
+vis -> vis : compute critical nodes / edges (expandedPaths + adjacency)
+vis -> vis : distinct modules sorted by id
+vis -> vis : group modules by 'prefix before :' → CytoscapeGroupDto
+vis -> vis : build CytoscapeElementDto: nodes / edges / group nodes
+vis -> dto : new CytoscapeReportDto(summary, elements, criticalPaths, groups, shapeSimilarities, pluginSettings)
+vis -> vis : Json.encodeToString(dto)
+vis -> vis : loadResource("/web/cytoscape.html") etc.\nreplace {{MILKYWAY_*}} placeholders
+vis --> runner : VisualizationOutput.Browser.Html(content)
+deactivate vis
 
-note over rb,dto
+note over vis,dto
   Ordering is deterministic:
   modules sorted by id, edges by (source, target),
-  groups by id — so cached JSON diffs cleanly.
+  groups by id — so cached HTML diffs cleanly.
 end note
 
 @enduml
