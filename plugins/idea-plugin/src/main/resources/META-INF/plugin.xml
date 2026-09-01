@@ -10,7 +10,7 @@
     <actions>
         <action
                 id="MilkyWay.AnalyzeDependencies"
-                class="com.github.milkyway.idea.AnalyzeDependenciesAction"
+                class="com.github.milkyway.idea.presentation.action.AnalyzeDependenciesAction"
                 text="Analyze Gradle Dependencies"
                 description="Analyze Gradle module dependency graph">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
@@ -27,9 +27,9 @@
                 id="MilkyWay Settings"
                 anchor="left"
                 icon="/icons/milkyway.svg"
-                factoryClass="com.github.milkyway.idea.toolwindow.SettingsToolWindow"/>
-        <postStartupActivity implementation="com.github.milkyway.idea.StartupActivity"/>
-        <fileEditorProvider implementation="com.github.milkyway.idea.editor.MilkywaySplitEditorProvider" />
+                factoryClass="com.github.milkyway.idea.presentation.toolwindow.SettingsToolWindow"/>
+        <postStartupActivity implementation="com.github.milkyway.idea.platform.StartupActivity"/>
+        <fileEditorProvider implementation="com.github.milkyway.idea.presentation.editor.MilkywaySplitEditorProvider" />
     </extensions>
 
 </idea-plugin>

@@ -1,7 +1,9 @@
-package com.github.milkyway.idea
+package com.github.milkyway.idea.platform
 
-import com.github.milkyway.idea.settings.MilkyWaySettings
-import com.github.milkyway.idea.toolwindow.MilkyWayToolWindowOpener
+import com.github.milkyway.idea.data.repository.milkyWayReportService
+import com.github.milkyway.idea.data.source.IjDependencyAnalysisAdapter
+import com.github.milkyway.idea.platform.settings.ParserSettings
+import com.github.milkyway.idea.presentation.toolwindow.MilkyWayToolWindowOpener
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.fileEditor.FileEditorManagerListener
@@ -17,7 +19,7 @@ class GradleFileListener(
     project: Project
 ) {
     init {
-        val settings = MilkyWaySettings.getInstance()
+        val settings = ParserSettings.getInstance()
         project.messageBus.connect().subscribe(
             FileEditorManagerListener.FILE_EDITOR_MANAGER,
             object : FileEditorManagerListener {
@@ -45,7 +47,7 @@ class GradleFileListener(
                                 try {
                                     indicator.text = "Running Gradle analysis"
 
-                                    val cytoscapeJson = GradleDependencyAnalysisRunner(project, srcGradleFile = file).run(projectDir)
+                                    val cytoscapeJson = IjDependencyAnalysisAdapter(project, srcGradleFile = file).run(projectDir)
 
                                     ApplicationManager.getApplication().invokeLater {
                                         project.milkyWayReportService().update(cytoscapeJson)

@@ -1,4 +1,4 @@
-package com.github.milkyway.idea.editor
+package com.github.milkyway.idea.presentation.editor
 
 import com.intellij.openapi.fileEditor.TextEditor
 import com.intellij.openapi.fileEditor.TextEditorWithPreview

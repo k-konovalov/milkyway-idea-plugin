@@ -1,6 +1,6 @@
-package com.github.milkyway.idea.editor
+package com.github.milkyway.idea.presentation.editor
 
-import com.github.milkyway.idea.settings.MilkyWaySettings
+import com.github.milkyway.idea.platform.settings.VisualizerSettings
 import com.intellij.openapi.editor.event.DocumentEvent
 import com.intellij.openapi.editor.event.DocumentListener
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -26,7 +26,7 @@ class MilkywayPreviewEditor(
 ): UserDataHolderBase(), FileEditor {
     private val panel = JPanel(BorderLayout())
     private val browser = JBCefBrowser()
-    private val settings = MilkyWaySettings.getInstance()
+    private val settings = VisualizerSettings.getInstance()
     private val document = FileDocumentManager.getInstance().getDocument(file) ?:
         error("Can't get document for file ${file.path}")
     private var dependencySet: Set<String> = mutableSetOf()

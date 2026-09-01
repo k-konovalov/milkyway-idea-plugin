@@ -1,4 +1,4 @@
-package com.github.milkyway.idea.toolwindow
+package com.github.milkyway.idea.presentation.toolwindow
 
 import com.intellij.ui.components.JBLabel
 import java.awt.BorderLayout

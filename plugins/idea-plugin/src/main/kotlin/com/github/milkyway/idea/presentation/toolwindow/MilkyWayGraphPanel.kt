@@ -1,7 +1,7 @@
-package com.github.milkyway.idea.toolwindow
+package com.github.milkyway.idea.presentation.toolwindow
 
-import com.github.milkyway.idea.milkyWayReportService
-import com.github.milkyway.idea.settings.MilkyWaySettings
+import com.github.milkyway.idea.data.repository.milkyWayReportService
+import com.github.milkyway.idea.platform.settings.VisualizerSettings
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.project.Project
 import com.intellij.ui.jcef.JBCefBrowser
@@ -15,7 +15,7 @@ class MilkyWayGraphPanel(
     project: Project
 ) : JPanel(BorderLayout()), Disposable {
     private var browser: JBCefBrowser = JBCefBrowser()
-    private val settings = MilkyWaySettings.getInstance()
+    private val settings = VisualizerSettings.getInstance()
 
     init {
         val cachedJson = project.milkyWayReportService().loadCached()

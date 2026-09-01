@@ -1,6 +1,8 @@
-package com.github.milkyway.idea
+package com.github.milkyway.idea.presentation.action
 
-import com.github.milkyway.idea.toolwindow.MilkyWayToolWindowOpener
+import com.github.milkyway.idea.data.repository.milkyWayReportService
+import com.github.milkyway.idea.data.source.IjDependencyAnalysisAdapter
+import com.github.milkyway.idea.presentation.toolwindow.MilkyWayToolWindowOpener
 import com.intellij.openapi.actionSystem.ActionUpdateThread
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.application.ApplicationManager
@@ -48,7 +50,7 @@ class AnalyzeDependenciesAction : DumbAwareAction() {
                     try {
                         indicator.text = "Running Gradle analysis"
 
-                        val cytoscapeJson = GradleDependencyAnalysisRunner(ideaProject).run(projectDir)
+                        val cytoscapeJson = IjDependencyAnalysisAdapter(ideaProject).run(projectDir)
 
                         ApplicationManager.getApplication().invokeLater {
                             ideaProject.milkyWayReportService().update(cytoscapeJson)
@@ -74,5 +76,4 @@ class AnalyzeDependenciesAction : DumbAwareAction() {
                 File(projectDir, "build.gradle.kts").exists() ||
                 File(projectDir, "build.gradle").exists()
     }
-
 }

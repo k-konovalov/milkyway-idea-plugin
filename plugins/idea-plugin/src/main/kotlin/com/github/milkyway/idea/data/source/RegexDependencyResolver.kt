@@ -1,4 +1,4 @@
-package com.github.milkyway.idea.resolver
+package com.github.milkyway.idea.data.source
 
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.parser.api.DependencyResolver
@@ -6,10 +6,6 @@ import com.github.milkyway.parser.regex.RegexGradleParser
 import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.project.Project
 
-/**
- * Thin adapter delegating to the pure-Kotlin [RegexGradleParser]
- * through the VFS-backed [IjGradleFilesProvider].
- */
 class RegexDependencyResolver(
     private val project: Project,
 ) : DependencyResolver {

@@ -1,4 +1,4 @@
-package com.github.milkyway.idea.resolver
+package com.github.milkyway.idea.data.source
 
 import com.github.milkyway.core.MilkyWayConstants
 import com.github.milkyway.core.models.DependencyGraph

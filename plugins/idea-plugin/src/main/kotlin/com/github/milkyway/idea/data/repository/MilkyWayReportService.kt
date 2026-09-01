@@ -1,6 +1,6 @@
-package com.github.milkyway.idea
+package com.github.milkyway.idea.data.repository
 
-import com.github.milkyway.idea.toolwindow.MilkyWayGraphPanel
+import com.github.milkyway.idea.presentation.toolwindow.MilkyWayGraphPanel
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service

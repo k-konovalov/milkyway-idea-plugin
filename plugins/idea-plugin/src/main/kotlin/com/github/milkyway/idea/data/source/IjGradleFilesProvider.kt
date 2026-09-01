@@ -1,4 +1,4 @@
-package com.github.milkyway.idea.resolver
+package com.github.milkyway.idea.data.source
 
 import com.github.milkyway.parser.regex.GradleFilesProvider
 import com.intellij.openapi.fileEditor.FileDocumentManager
@@ -7,9 +7,6 @@ import com.intellij.openapi.vfs.VfsUtilCore
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.VirtualFileVisitor
 
-/**
- * Adapter implementing the [GradleFilesProvider] port via the IntelliJ VFS.
- */
 class IjGradleFilesProvider(
     private val project: Project,
 ) : GradleFilesProvider {

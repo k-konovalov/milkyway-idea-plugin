@@ -1,4 +1,4 @@
-package com.github.milkyway.idea
+package com.github.milkyway.idea.platform
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity

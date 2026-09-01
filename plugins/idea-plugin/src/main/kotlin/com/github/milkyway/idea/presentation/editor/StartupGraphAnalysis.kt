@@ -1,6 +1,6 @@
-package com.github.milkyway.idea.editor
+package com.github.milkyway.idea.presentation.editor
 
-import com.github.milkyway.idea.GradleDependencyAnalysisRunner
+import com.github.milkyway.idea.data.source.IjDependencyAnalysisAdapter
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressIndicator
 import com.intellij.openapi.progress.ProgressManager
@@ -26,7 +26,7 @@ class StartupGraphAnalysis(
                     val rootFile = if (file.name == "settings.gradle.kts") { null } else { file }
                     try {
                         indicator.text = "Running Gradle analysis"
-                        val cyJson = GradleDependencyAnalysisRunner(project, srcGradleFile = rootFile).run(projectDir)
+                        val cyJson = IjDependencyAnalysisAdapter(project, srcGradleFile = rootFile).run(projectDir)
                         previewEditor.reload(cyJson)
                     } catch (e: Exception) {
                         ApplicationManager.getApplication().invokeLater {
