@@ -1,28 +1,17 @@
-package com.github.milkyway.idea.feature
+package com.github.milkyway.graph
 
 import com.github.milkyway.core.models.DependencyGraph
 import com.github.milkyway.core.models.Node
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VfsUtilCore
-import com.intellij.openapi.vfs.VirtualFile
 
 class GraphCutter(
-    private val project: Project,
     private val dependencyGraph: DependencyGraph,
-    private val srcGradleFile: VirtualFile? = null,
+    private val moduleName: String? = null,
 ) {
     fun cut(): DependencyGraph {
-        if (srcGradleFile == null) {
+        if (moduleName == null) {
             return dependencyGraph
         }
-        val moduleName = moduleNameFromFile(project, srcGradleFile).removePrefix(":")
-        val shrunkGraph = dependencyGraph.startFromModuleName(moduleName)
-        return shrunkGraph
-    }
-
-    private fun moduleNameFromFile(project: Project, file: VirtualFile): String {
-        val relativePath = VfsUtilCore.getRelativePath(file.parent, project.baseDir) ?: return ""
-        return ":" + relativePath.replace("/", ":")
+        return dependencyGraph.startFromModuleName(moduleName)
     }
 
     private fun DependencyGraph.startFromModuleName(moduleName: String): DependencyGraph {

@@ -1,4 +1,4 @@
-package com.github.milkyway.idea.pipeline
+package com.github.milkyway.graph
 
 import com.github.milkyway.algorithm.api.AnalyzerResult
 import com.github.milkyway.algorithm.api.GraphAnalyzer

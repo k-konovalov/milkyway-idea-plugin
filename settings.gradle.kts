@@ -41,3 +41,6 @@ include(":features:visualizer:cytoscape:impl")
 
 include(":features:parser:api")
 include(":features:parser:regex")
+
+include(":features:graph-processing:api")
+include(":features:graph-processing:impl")

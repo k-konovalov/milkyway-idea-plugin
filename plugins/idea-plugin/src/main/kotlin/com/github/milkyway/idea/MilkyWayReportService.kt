@@ -1,6 +1,5 @@
 package com.github.milkyway.idea
 
-import com.github.milkyway.core.MilkyWayConstants
 import com.github.milkyway.idea.toolwindow.MilkyWayGraphPanel
 import com.intellij.openapi.application.PathManager
 import com.intellij.openapi.components.Service
@@ -55,7 +54,11 @@ class MilkyWayReportService(
         val projectHash = sha256(basePath).take(16)
 
         return PathManager.getSystemDir().resolve("milkyway").resolve(projectHash)
-            .resolve(MilkyWayConstants.CYTOSCAPE_REPORT_FILE)
+            .resolve(CYTOSCAPE_REPORT_FILE)
+    }
+
+    companion object {
+        private const val CYTOSCAPE_REPORT_FILE = "cytoscape.json"
     }
 
     private fun sha256(value: String): String {
