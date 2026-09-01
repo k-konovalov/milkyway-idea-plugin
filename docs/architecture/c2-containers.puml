@@ -12,15 +12,15 @@ System_Ext(sys_fs, "Filesystem")
 
 System_Boundary(sys_milkyway, "Milkyway IDEA Plugin") {
 
-    Container(cont_parser, "Parser / Resolver", "Kotlin (idea-plugin/resolver + gradle-plugin)", "Turns build.gradle.kts text (or Gradle model) into DependencyGraph. Two strategies: Regex, Gradle-task. DependencyResolver interface lives in core/resolver/.")
+    Container(cont_parser, "Parser / Resolver", "Kotlin (features/parser:api, features/parser:regex, plugins/idea-plugin/resolver, plugins/gradle-plugin)", "Turns build.gradle.kts text (or Gradle model) into DependencyGraph. Two strategies: Regex (RegexGradleParser + IJ adapter), Gradle-task. DependencyResolver interface lives in features/parser:api.")
 
-    Container(cont_algorithm, "Algorithm Pipeline", "Kotlin (algorithm:api, algorithm:critical-path, algorithm:articulation-points, algorithm:shape-matching)", "Parallel GraphAnalyzer<R> pipeline via coroutines: SCC (Tarjan) → critical paths (topo DAG), articulation points, shape matching (cosine on layer profile). Each analyzer returns an AnalyzerResult; AnalysisPipeline aggregates into GraphAnalysisResult.")
+    Container(cont_algorithm, "Algorithm Pipeline", "Kotlin (features/algorithm:api, :critical-path, :articulation-points, :shape-matching)", "Parallel GraphAnalyzer<R> pipeline via coroutines: SCC (Tarjan) → critical paths (topo DAG), articulation points, shape matching (cosine on layer profile). Each analyzer returns an AnalyzerResult; AnalysisPipeline aggregates into GraphAnalysisResult.")
 
     Container(cont_engine, "Graph Feature", "Kotlin (idea-plugin/feature)", "GraphCutter: BFS subgraph shrink from the currently-edited module. Runs before the algorithm pipeline.")
 
     Container(cont_visualizer, "Visualizer", "Kotlin + JS (visualizer:api, visualizer:cytoscape, web/*)", "CytoscapeVisualizer: renders GraphAnalysisResult → CytoscapeReportDto → embeds in HTML template ({{placeholders}}). Hosts JBCefBrowser inside split-editor and ToolWindow.")
 
-    ContainerDb(cont_shared, "Shared Models", "Kotlin (core/models + core/mapper + core/resolver)", "DependencyGraph, Node, EdgeVisit, DTOs (DependencyGraphDto, CytoscapeReportDto, Shape…), GraphDependencyMapper, DependencyResolver interface.")
+    ContainerDb(cont_shared, "Shared Models", "Kotlin (core/models + core/mapper)", "DependencyGraph, Node, EdgeVisit, DependencyGraphDto, GraphDependencyMapper, MilkyWayConstants.")
 
     Container(cont_report_svc, "Report Service + Settings", "Kotlin (idea-plugin/MilkyWayReportService, settings)", "Caches latest rendered HTML on disk, propagates updates to tool window panel; PersistentStateComponent for user preferences.")
 }

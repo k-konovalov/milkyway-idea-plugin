@@ -9,7 +9,7 @@ This repo is indexed by [CodeGraph](https://github.com/colbymchenry/codegraph) �
 - Preferred: `codegraph_explore` (MCP tool) — one call returns the verbatim line-numbered source of the matching symbols plus the call paths and blast-radius across `core` / `gradle-plugin` / `idea-plugin`, including the cross-JVM hops that plain grep cannot follow (e.g. `GradleDependencyResolver` → `MilkyWayPlugin` → `PrintDependenciesTask`).
 - Shell fallback: `codegraph explore "<symbols or question>"` prints the same output.
 - Treat source shown by CodeGraph as already Read — do **not** re-open those files with Read afterwards.
-- Name concrete symbols or files in the query (e.g. `"GradleDependencyAnalysisRunner ReportBuilder GraphCutter"`) rather than free-form prose; add a question only if you also need the call flow.
+- Name concrete symbols or files in the query (e.g. `"GradleDependencyAnalysisRunner CytoscapeVisualizer GraphCutter"`) rather than free-form prose; add a question only if you also need the call flow.
 - If the daemon is stale after large refactors, the user can re-run `codegraph init` — do **not** run it yourself.
 
 ## Build & run
@@ -26,17 +26,28 @@ CI (`build-milkyway.yml`) uses JetBrains JBR JDK 21 to build the plugin, but sou
 
 ## Architecture
 
-Three Gradle modules, published in three different ways:
+Multi-module Gradle build organized into three top-level groups:
 
-- **`core`** — pure Kotlin, no IntelliJ deps. Data models (`models/*.kt` — `DependencyGraph`, `Cytoscape*Dto`), analyzers (`CriticalPathAnalyzer`, `ArticulationPointsAnalyzer`, `TarjanSccFinder`), shape matching (`shape/*`), and `GraphDependencyMapper` (DTO↔domain). Shared by both other modules — every cross-module data structure lives here. Published as a plain Maven artifact.
-- **`gradle-plugin`** (`io.github.milkyway.gradle`) — Gradle plugin registering the `milkywayAnalyzeDependencies` task (`PrintDependenciesTask`). Runs inside the *user's* Gradle daemon, walks the project's module graph, serializes a `DependencyGraphDto` to `build/reports/milkyway/dependency-graph.json`. Published to Maven Local for dev; distributed via Gradle Plugin Portal (`validate-gradle-plugin-globally` / `publish-gradle-plugin-globally` Make targets).
-- **`idea-plugin`** — IntelliJ Platform plugin (`platformVersion=2025.2.6.1`, `pluginSinceBuild=252`). Uses the IntelliJ Platform Gradle Plugin 2.16.0 (`org.jetbrains.intellij.platform`). Depends on `com.intellij.gradle`.
+- **`core`** — pure Kotlin, no IntelliJ deps. Domain models (`models/*.kt` — `DependencyGraph`, `Node`, `DependencyGraphDto`), `GraphDependencyMapper` (DTO↔domain), `MilkyWayConstants`. Shared by all modules. Published as a plain Maven artifact.
+- **`plugins/gradle-plugin`** (`:plugins:gradle-plugin`, `io.github.milkyway.gradle`) — Gradle plugin registering the `milkywayAnalyzeDependencies` task (`PrintDependenciesTask`). Runs inside the *user's* Gradle daemon, walks the project's module graph, serializes a `DependencyGraphDto` to `build/reports/milkyway/dependency-graph.json`. Published to Maven Local for dev; distributed via Gradle Plugin Portal (`validate-gradle-plugin-globally` / `publish-gradle-plugin-globally` Make targets).
+- **`plugins/idea-plugin`** (`:plugins:idea-plugin`) — IntelliJ Platform plugin (`platformVersion=2025.2.6.1`, `pluginSinceBuild=252`). Uses the IntelliJ Platform Gradle Plugin 2.16.0 (`org.jetbrains.intellij.platform`). Depends on `com.intellij.gradle`.
+- **`features/algorithm/*`** — pure Kotlin algorithm modules, no IntelliJ deps:
+  - `:features:algorithm:api` — `GraphAnalyzer<R>` interface, `AnalyzerResult` sealed type
+  - `:features:algorithm:critical-path` (api + impl) — `CriticalPathAnalyzer`, `TarjanSccFinder` (internal), `CriticalPathResult`
+  - `:features:algorithm:articulation-points` (api + impl) — `ArticulationPointsAnalyzer`, `ArticulationPointsResult`
+  - `:features:algorithm:shape-matching` (api + impl) — `GraphShapeMatcher`, `ShapeMatcher`/`ShapeManager` (internal), `Shape`, `ShapeMatchResult`
+- **`features/visualizer/*`** — pure Kotlin visualizer modules:
+  - `:features:visualizer:api` — `Visualizer`, `VisualizationOutput`, `GraphAnalysisResult`
+  - `:features:visualizer:cytoscape` (api + impl) — `CytoscapeReportDto` family in api; `CytoscapeVisualizer` in impl (renders `GraphAnalysisResult` → HTML); web bundle in impl resources
+- **`features/parser/*`** — pure Kotlin parser modules:
+  - `:features:parser:api` — `DependencyResolver` interface
+  - `:features:parser:regex` — `RegexGradleParser` (pure-Kotlin regex parser), `GradleFilesProvider` interface
 
 ### Cross-JVM handoff (idea-plugin ↔ gradle-plugin)
 
 The two plugins run in **different JVMs**. They communicate over disk in JSON:
 
-1. `idea-plugin`'s `GradleDependencyResolver` writes a temp init script from the templated `idea-plugin/src/main/templates/milkyway-init.gradle` (see `generateMilkywayInitScript` task in `idea-plugin/build.gradle.kts` — `@GRADLE_PLUGIN_VERSION@` is substituted at build time with the root project version).
+1. `plugins/idea-plugin`'s `GradleDependencyResolver` writes a temp init script from the templated `plugins/idea-plugin/src/main/templates/milkyway-init.gradle` (see `generateMilkywayInitScript` task in `plugins/idea-plugin/build.gradle.kts` — `@GRADLE_PLUGIN_VERSION@` is substituted at build time with the root project version).
 2. The init script pulls `io.github.milkyway.gradle:gradle-plugin` from mavenLocal (which is why `make dev` runs `publish-gradle-plugin` first) and applies it to the root project.
 3. `idea-plugin` invokes the Gradle daemon via `ExternalSystemUtil.runTask` with `--init-script`, blocks on a `CountDownLatch`, then reads and deserializes `build/reports/milkyway/dependency-graph.json`.
 
@@ -44,12 +55,12 @@ Shared filenames and task names live in `core/MilkyWayConstants` — change them
 
 ### Two resolvers
 
-`DependencyResolver` has two implementations, chosen at runtime via `MilkyWaySettings.parser`:
+`DependencyResolver` interface (`features/parser/api`) has two implementations in `plugins/idea-plugin`, chosen at runtime via `MilkyWaySettings.parser`:
 
-- `RegexDependencyResolver` — parses `build.gradle.kts` text with regex. Fast, no Gradle invocation, but sees only direct declarations.
+- `RegexDependencyResolver` — thin IJ-VFS adapter: wraps `IjGradleFilesProvider` (VFS-backed file provider) + `RegexGradleParser` (pure-Kotlin regex parser in `features/parser/regex`) in a `ReadAction`. Fast, no Gradle invocation, sees only direct declarations.
 - `GradleDependencyResolver` — the cross-JVM path above. Accurate (uses Gradle's own configuration resolution) but slow.
 
-`GradleDependencyAnalysisRunner` picks a resolver, runs it, feeds the result through `GraphCutter` (drops nodes unrelated to the current file), then `ReportBuilder` (SCC → critical path → articulation points → shape matching → `CytoscapeReportDto`), then serializes to JSON.
+`GradleDependencyAnalysisRunner` picks a resolver, feeds the graph through `GraphCutter` (drops nodes unrelated to the current file), then `AnalysisPipeline` (runs `CriticalPathAnalyzer`, `ArticulationPointsAnalyzer`, `GraphShapeMatcher` in parallel via coroutines → `GraphAnalysisResult`), then `CytoscapeVisualizer.render()` → returns an HTML string.
 
 ### Editor & rendering
 
@@ -57,7 +68,7 @@ The plugin registers a `FileEditorProvider` (`MilkywaySplitEditorProvider`) with
 
 Live-edit flow: `MilkywayPreviewEditor` listens to the document, regex-parses `include(...)` and `project(...)` sets, and if either set changed, debounces via `Alarm(POOLED_THREAD)` for 1s before rerunning `StartupGraphAnalysis`. The debounce is what keeps typing responsive — do not remove the equality check before the alarm request.
 
-Rendering: `HtmlRenderer` embeds the Cytoscape.js report JSON into the static HTML at `idea-plugin/src/main/resources/web/cytoscape.html` (plus `cytoscape-view.js`, klay/expand-collapse/undo-redo plugins) and loads it into JCEF. Do not fetch these from the web — they are bundled and offline-usable.
+Rendering: `CytoscapeVisualizer` embeds the Cytoscape.js report JSON into the static HTML at `features/visualizer/cytoscape/impl/src/main/resources/web/cytoscape.html` (plus `cytoscape-view.js`, klay/expand-collapse/undo-redo plugins) and returns a full HTML string loaded into JCEF. Do not fetch these from the web — they are bundled and offline-usable.
 
 Report caching: `MilkyWayReportService` (project-level) writes the latest `cytoscape.json` under `PathManager.getSystemDir()/milkyway/<sha256(basePath)[0..15]>/` so reopening the project shows the last graph without a full reanalysis.
 
@@ -65,7 +76,7 @@ Settings: `MilkyWaySettings` is **app-level** (`Service.Level.APP`, `Storage("mi
 
 ## Docs
 
-`docs/architecture/` contains C4-model PlantUML diagrams (c1..c4) that stay in sync with the source anchors listed in its `README.md`. Update them if you change container/component boundaries, resolver dispatch, or the analytics pipeline ordering (the deterministic ordering in `ReportBuilder` / `GraphDependencyMapper` is called out explicitly because it produces clean JSON diffs on disk).
+`docs/architecture/` contains C4-model PlantUML diagrams (c1..c4) that stay in sync with the source anchors listed in its `README.md`. Update them if you change container/component boundaries, resolver dispatch, or the analytics pipeline ordering (the deterministic ordering in `CytoscapeVisualizer` / `GraphDependencyMapper` is called out explicitly because it produces clean HTML diffs on disk).
 
 ## Manual test projects
 

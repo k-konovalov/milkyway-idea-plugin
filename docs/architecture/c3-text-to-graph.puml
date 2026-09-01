@@ -15,13 +15,19 @@ Container_Boundary(cont_visualizer, "Visualizer (idea-plugin)") {
     Component(comp_file_listener, "GradleFileListener", "FileEditorManagerListener", "Re-runs analysis on file open when setting enabled")
 }
 
-Container_Boundary(cont_parser, "Parser / Resolver (idea-plugin/resolver)") {
+Container_Boundary(cont_runner, "Orchestration (plugins/idea-plugin)") {
     Component(comp_runner, "GradleDependencyAnalysisRunner", "Kotlin orchestrator", "Picks resolver by MilkyWaySettings.parser; runs GraphCutter; delegates to AnalysisPipeline + CytoscapeVisualizer; returns HTML string")
-    Component(comp_regex_resolver, "RegexDependencyResolver", "Kotlin", "ReadAction over VFS; regexes for include(...) and impl(project(...)); filters by settings include set")
+    Component(comp_regex_resolver, "RegexDependencyResolver", "Kotlin (IJ adapter)", "ReadAction wrapper; delegates to RegexGradleParser via IjGradleFilesProvider")
+    Component(comp_ij_files, "IjGradleFilesProvider", "Kotlin", "Supplies settings.gradle.kts and build.gradle.kts content via IntelliJ VFS")
     Component(comp_gradle_resolver, "GradleDependencyResolver", "Kotlin", "Materialises milkyway-init.gradle; runs :milkywayDependencyGraph via ExternalSystemUtil; deserialises DependencyGraphDto")
 }
 
-Container_Boundary(cont_core_resolver, "Shared (core/resolver)") {
+Container_Boundary(cont_parser_regex, "Parser Regex (features/parser:regex)") {
+    Component(comp_regex_parser, "RegexGradleParser", "Kotlin", "Pure-Kotlin regex parser; include(...) and project(...) regexes; uses GradleFilesProvider for file content")
+    Component(comp_files_provider, "GradleFilesProvider", "interface", "settingsContent(): String?; buildFiles(): Map<String, String>")
+}
+
+Container_Boundary(cont_parser_api, "Parser API (features/parser:api)") {
     Component(comp_dep_resolver, "DependencyResolver", "interface", "resolve(): DependencyGraph")
 }
 
@@ -29,7 +35,7 @@ Container_Boundary(cont_engine, "Graph Engine (post-parse)") {
     Component(comp_cutter, "GraphCutter", "Kotlin", "BFS shrink of DependencyGraph starting from currently-edited module")
 }
 
-Container_Boundary(cont_gradle_plugin, "gradle-plugin (runs inside Gradle daemon)") {
+Container_Boundary(cont_gradle_plugin, "plugins/gradle-plugin (runs inside Gradle daemon)") {
     Component(comp_plugin, "MilkyWayPlugin", "Plugin<Project>", "Registers :milkywayDependencyGraph task")
     Component(comp_print_task, "PrintDependenciesTask", "DefaultTask", "Traverses all subprojects, writes DependencyGraphDto JSON to build/reports/milkyway/")
     Component(comp_project_trav, "ProjectModulesTraverser", "DependencyTraverser", "ResolutionResult walk; keeps only ProjectComponentIdentifier edges")
@@ -56,8 +62,13 @@ Rel(comp_runner, comp_settings, "reads state.parser")
 Rel(comp_runner, comp_dep_resolver, "resolve()")
 Rel(comp_regex_resolver, comp_dep_resolver, "implements")
 Rel(comp_gradle_resolver, comp_dep_resolver, "implements")
+Rel(comp_regex_parser, comp_dep_resolver, "implements")
 
-Rel(comp_regex_resolver, sys_ide, "VfsUtilCore + FileDocumentManager (ReadAction)")
+Rel(comp_regex_resolver, comp_regex_parser, "delegates to")
+Rel(comp_regex_resolver, comp_ij_files, "provides GradleFilesProvider")
+Rel(comp_regex_parser, comp_files_provider, "reads via")
+Rel(comp_ij_files, comp_files_provider, "implements")
+Rel(comp_ij_files, sys_ide, "VfsUtilCore + FileDocumentManager (ReadAction)")
 Rel(comp_gradle_resolver, sys_gradle, "ExternalSystemUtil.runTask + init-script")
 Rel(sys_gradle, comp_plugin, "applies plugin (via init-script)")
 Rel(comp_plugin, comp_print_task, "registers task")

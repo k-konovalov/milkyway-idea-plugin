@@ -25,22 +25,24 @@ Diagrams describe the Milkyway IDEA plugin at four levels of zoom, following the
 
 | Diagram element | Source |
 | --- | --- |
-| Editor wiring | `idea-plugin/src/main/kotlin/com/github/milkyway/idea/editor/*` |
-| Orchestrator | `idea-plugin/.../GradleDependencyAnalysisRunner.kt` |
-| Analysis pipeline | `idea-plugin/.../pipeline/AnalysisPipeline.kt` |
-| Resolver interface | `core/src/main/kotlin/com/github/milkyway/core/resolver/DependencyResolver.kt` |
-| Resolvers (impls) | `idea-plugin/.../resolver/{Regex,Gradle}DependencyResolver.kt` |
-| Gradle plugin side | `gradle-plugin/src/main/kotlin/io/github/milkyway/gradle/*` |
-| Algorithm API | `algorithm/api/src/main/kotlin/com/github/milkyway/algorithm/api/*` |
-| Critical path | `algorithm/critical-path/src/main/kotlin/com/github/milkyway/algorithm/criticalpath/*` |
-| Articulation points | `algorithm/articulation-points/src/main/kotlin/com/github/milkyway/algorithm/articulationpoints/*` |
-| Shape matching | `algorithm/shape-matching/src/main/kotlin/com/github/milkyway/algorithm/shapematching/*` |
-| Visualizer API | `visualizer/api/src/main/kotlin/com/github/milkyway/visualizer/api/*` |
-| Cytoscape rendering | `visualizer/cytoscape/src/main/kotlin/com/github/milkyway/visualizer/cytoscape/*` |
-| Web bundle | `visualizer/cytoscape/src/main/resources/web/*` |
+| Editor wiring | `plugins/idea-plugin/src/main/kotlin/com/github/milkyway/idea/editor/*` |
+| Orchestrator | `plugins/idea-plugin/.../GradleDependencyAnalysisRunner.kt` |
+| Analysis pipeline | `plugins/idea-plugin/.../pipeline/AnalysisPipeline.kt` |
+| Parser interface | `features/parser/api/src/main/kotlin/com/github/milkyway/parser/api/DependencyResolver.kt` |
+| Regex parser (pure-Kotlin) | `features/parser/regex/src/main/kotlin/com/github/milkyway/parser/regex/RegexGradleParser.kt` |
+| Resolvers (IJ adapters) | `plugins/idea-plugin/.../resolver/{Regex,Gradle}DependencyResolver.kt` |
+| Gradle plugin side | `plugins/gradle-plugin/src/main/kotlin/io/github/milkyway/gradle/*` |
+| Algorithm API | `features/algorithm/api/src/main/kotlin/com/github/milkyway/algorithm/api/*` |
+| Critical path | `features/algorithm/critical-path/{api,impl}/src/main/kotlin/com/github/milkyway/algorithm/criticalpath/*` |
+| Articulation points | `features/algorithm/articulation-points/{api,impl}/src/main/kotlin/com/github/milkyway/algorithm/articulationpoints/*` |
+| Shape matching | `features/algorithm/shape-matching/{api,impl}/src/main/kotlin/com/github/milkyway/algorithm/shapematching/*` |
+| Visualizer API | `features/visualizer/api/src/main/kotlin/com/github/milkyway/visualizer/api/*` |
+| Cytoscape DTOs | `features/visualizer/cytoscape/api/src/main/kotlin/com/github/milkyway/visualizer/cytoscape/Cytoscape.kt` |
+| Cytoscape rendering | `features/visualizer/cytoscape/impl/src/main/kotlin/com/github/milkyway/visualizer/cytoscape/CytoscapeVisualizer.kt` |
+| Web bundle | `features/visualizer/cytoscape/impl/src/main/resources/web/*` |
 | DTOs / mapper | `core/.../models/*` + `core/.../mapper/GraphDependencyMapper.kt` |
-| Report cache | `idea-plugin/.../MilkyWayReportService.kt` |
-| Settings | `idea-plugin/.../settings/MilkyWaySettings.kt` |
+| Report cache | `plugins/idea-plugin/.../MilkyWayReportService.kt` |
+| Settings | `plugins/idea-plugin/.../settings/MilkyWaySettings.kt` |
 
 ## Rendering
 
