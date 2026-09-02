@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>ReturnCount:CriticalPathAnalyzer.kt$CriticalPathAnalyzer$private fun compareComponentPaths( left: Int?, right: Int?, condensedGraph: CondensedGraph, ): Int</ID>
+    <ID>UnusedParameter:CriticalPathAnalyzer.kt$CriticalPathAnalyzer$originalGraph: DependencyGraph</ID>
+  </CurrentIssues>
+</SmellBaseline>

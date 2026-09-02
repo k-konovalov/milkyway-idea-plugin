@@ -1,0 +1,22 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>EmptyFunctionBlock:MilkywayPreviewEditor.kt$MilkywayPreviewEditor${ }</ID>
+    <ID>MagicNumber:CheckboxRow.kt$CheckboxRow$8</ID>
+    <ID>MagicNumber:MilkyWayReportService.kt$MilkyWayReportService$16</ID>
+    <ID>MagicNumber:MilkywayPreviewEditor.kt$MilkywayPreviewEditor.&lt;no name provided&gt;$1000</ID>
+    <ID>MagicNumber:SelectRow.kt$SelectRow$8</ID>
+    <ID>MagicNumber:SettingsToolWindow.kt$SettingsToolWindow.MilkyWaySettingsToolWindow$12</ID>
+    <ID>MagicNumber:SettingsToolWindow.kt$SettingsToolWindow.MilkyWaySettingsToolWindow$4</ID>
+    <ID>MaxLineLength:GradleFileListener.kt$GradleFileListener.&lt;no name provided&gt;.&lt;no name provided&gt;$val cytoscapeJson = IjDependencyAnalysisAdapter(project, srcGradleFile = file).run(projectDir)</ID>
+    <ID>MaxLineLength:SettingsToolWindow.kt$SettingsToolWindow.MilkyWaySettingsToolWindow$form</ID>
+    <ID>ReturnCount:AnalyzeDependenciesAction.kt$AnalyzeDependenciesAction$override fun actionPerformed(event: AnActionEvent)</ID>
+    <ID>ReturnCount:GradleFileListener.kt$GradleFileListener.&lt;no name provided&gt;$override fun fileOpened(source: FileEditorManager, file: VirtualFile)</ID>
+    <ID>ReturnCount:MilkyWayReportService.kt$MilkyWayReportService$fun loadCached(): String?</ID>
+    <ID>TooGenericExceptionCaught:AnalyzeDependenciesAction.kt$AnalyzeDependenciesAction.&lt;no name provided&gt;$exception: Exception</ID>
+    <ID>TooGenericExceptionCaught:GradleFileListener.kt$GradleFileListener.&lt;no name provided&gt;.&lt;no name provided&gt;$exception: Exception</ID>
+    <ID>TooGenericExceptionCaught:StartupGraphAnalysis.kt$StartupGraphAnalysis.&lt;no name provided&gt;$e: Exception</ID>
+    <ID>TooManyFunctions:MilkywayPreviewEditor.kt$MilkywayPreviewEditor : UserDataHolderBaseFileEditor</ID>
+  </CurrentIssues>
+</SmellBaseline>

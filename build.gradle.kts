@@ -12,9 +12,3 @@ plugins {
 allprojects {
     version = "0.1.0"
 }
-
-tasks.register("detektAll", Detekt::class.java) {
-    group = "verification"
-    description = "Run detekt across all modules."
-    dependsOn(subprojects.mapNotNull { it.tasks.findByName("detekt") })
-}

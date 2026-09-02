@@ -9,30 +9,21 @@ kotlin {
 
 detekt {
     autoCorrect = false
-    basePath = projectDir.absolutePath
     buildUponDefaultConfig = true
     parallel = true
-    baseline = rootProject.file("buildSrc/detekt-baseline.xml")
     source.setFrom("src/main/java", "src/main/kotlin")
     config.setFrom(rootProject.files("buildSrc/detekt.yml"))
+}
+
+tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
+    jvmTarget = "17"
     reports {
       html.required = false
       md.required = true
       sarif.required = false
       txt.required = false
-      xml.required = true
+      xml.required = false
     }
-}
-
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-    jvmTarget = "17"
-}
-
-// detektBaseline writes per-module so Gradle can track unique outputs (parallel-safe).
-// mergeDetektBaselines then folds them into buildSrc/detekt-baseline.xml.
-tasks.withType<io.gitlab.arturbosch.detekt.DetektCreateBaselineTask>().configureEach {
-    baseline.set(project.layout.projectDirectory.file("detekt-baseline.xml"))
-    outputs.upToDateWhen { false }
 }
 
 dependencies {
