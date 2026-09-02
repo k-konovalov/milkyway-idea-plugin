@@ -1,13 +1,10 @@
 plugins {
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinBase)
     alias(libs.plugins.intelliJPlatform)
 }
 
 group = "com.github.milkyway"
 
-kotlin {
-    jvmToolchain(17)
-}
 
 repositories {
     mavenCentral()

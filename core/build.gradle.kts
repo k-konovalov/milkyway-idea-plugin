@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinBase)
     alias(libs.plugins.kotlinSerialization)
     `maven-publish`
 }
@@ -8,9 +8,6 @@ plugins {
 // gradle-plugin POM) — do not change without re-publishing both.
 group = "com.github.milkyway"
 
-kotlin {
-    jvmToolchain(17)
-}
 
 dependencies {
     implementation(libs.kotlinxSerializationJson)

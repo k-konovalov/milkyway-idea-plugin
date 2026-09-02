@@ -1,14 +1,10 @@
 plugins {
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinBase)
 }
 
 group = "com.github.milkyway.algorithm"
 
-kotlin {
-    jvmToolchain(17)
-}
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(project(":core"))
 }
