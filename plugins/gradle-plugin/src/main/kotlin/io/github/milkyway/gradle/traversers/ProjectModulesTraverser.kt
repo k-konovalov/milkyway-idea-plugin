@@ -63,6 +63,7 @@ class ProjectModulesTraverser : DependencyTraverser {
         }
     }
 
+    @Suppress("ReturnCount")
     private fun attachNode(
         childNode: Node?,
         parentNode: Node?,
@@ -92,6 +93,7 @@ class ProjectModulesTraverser : DependencyTraverser {
         return true
     }
 
+    @Suppress("ReturnCount")
     private fun projectComponentNodeOrNull(component: ResolvedComponentResult): Node? {
         val componentId = component.id as? ProjectComponentIdentifier ?: return null
 

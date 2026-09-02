@@ -1,0 +1,10 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>CyclomaticComplexMethod:ArticulationPointsAnalyzer.kt$ArticulationPointsAnalyzer$private fun findArticulationPoints(graph: DependencyGraph): Set&lt;Node&gt;</ID>
+    <ID>LongMethod:ArticulationPointsAnalyzer.kt$ArticulationPointsAnalyzer$private fun findArticulationPoints(graph: DependencyGraph): Set&lt;Node&gt;</ID>
+    <ID>LoopWithTooManyJumpStatements:ArticulationPointsAnalyzer.kt$ArticulationPointsAnalyzer$while</ID>
+    <ID>NestedBlockDepth:ArticulationPointsAnalyzer.kt$ArticulationPointsAnalyzer$private fun findArticulationPoints(graph: DependencyGraph): Set&lt;Node&gt;</ID>
+  </CurrentIssues>
+</SmellBaseline>

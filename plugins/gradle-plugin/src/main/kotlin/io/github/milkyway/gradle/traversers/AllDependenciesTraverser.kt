@@ -42,6 +42,7 @@ class AllDependenciesTraverser : DependencyTraverser {
         )
     }
 
+    @Suppress("LoopWithTooManyJumpStatements")
     private fun addDependencies(
         graph: DependencyGraph,
         parentNode: Node,

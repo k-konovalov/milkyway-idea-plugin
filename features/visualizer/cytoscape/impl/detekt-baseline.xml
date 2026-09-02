@@ -1,0 +1,7 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>LongMethod:CytoscapeVisualizer.kt$CytoscapeVisualizer$private fun buildCytoscapeReport( criticalPaths: List&lt;List&lt;Set&lt;Node&gt;&gt;&gt;, longestPathLength: Int, articulationPoints: Set&lt;Node&gt;, shapeMatches: Map&lt;Shape, Double&gt;, graph: DependencyGraph, ): CytoscapeReportDto</ID>
+  </CurrentIssues>
+</SmellBaseline>

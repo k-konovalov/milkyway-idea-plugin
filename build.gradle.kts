@@ -1,3 +1,5 @@
+import io.gitlab.arturbosch.detekt.Detekt
+
 plugins {
     alias(libs.plugins.kotlinSerialization) apply false
     alias(libs.plugins.intelliJPlatform) apply false

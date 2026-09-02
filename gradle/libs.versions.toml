@@ -9,6 +9,7 @@ slf4j = "2.0.17"
 
 # plugins
 changelog = "2.5.0"
+detekt = "1.23.7"
 intelliJPlatform = "2.16.0"
 kotlin = "2.1.21"
 kover = "0.9.7"
@@ -26,6 +27,7 @@ slf4jSimple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
 
 [plugins]
 changelog = { id = "org.jetbrains.changelog", version.ref = "changelog" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }
 intelliJPlatform = { id = "org.jetbrains.intellij.platform", version.ref = "intelliJPlatform" }
 kotlin = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 kotlinBase = { id = "kotlin-base" }

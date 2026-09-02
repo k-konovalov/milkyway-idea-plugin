@@ -1,0 +1,8 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
+  <CurrentIssues>
+    <ID>MagicNumber:ShapeManager.kt$ShapeManager$100.0</ID>
+    <ID>ReturnCount:ShapeManager.kt$ShapeManager$fun resampleLinear(vec: List&lt;Double&gt;, targetLength: Int): List&lt;Double&gt;</ID>
+  </CurrentIssues>
+</SmellBaseline>
