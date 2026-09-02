@@ -1,15 +1,11 @@
 plugins {
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinBase)
 }
 
 group = "com.github.milkyway.algorithm.criticalpath.api"
 
-kotlin {
-    jvmToolchain(17)
-}
 
 dependencies {
-    implementation(kotlin("stdlib"))
     implementation(project(":core"))
     implementation(project(":features:algorithm:api"))
 }

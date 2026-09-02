@@ -1,5 +1,5 @@
 plugins {
-    alias(libs.plugins.kotlin)
+    alias(libs.plugins.kotlinBase)
     alias(libs.plugins.kotlinSerialization)
     `java-gradle-plugin`
     `maven-publish`
@@ -8,9 +8,6 @@ plugins {
 group = "io.github.milkyway.gradle"
 version = "0.1.0"
 
-kotlin {
-    jvmToolchain(17)
-}
 
 dependencies {
     implementation(project(":core"))
