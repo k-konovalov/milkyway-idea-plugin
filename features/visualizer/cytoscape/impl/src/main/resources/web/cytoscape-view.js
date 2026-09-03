@@ -16,6 +16,7 @@
  * @property {String} id
  * @property {String} label
  * @property {String[]} nodes
+ * @property {?String} parent
  */
 /**
  * @typedef CytoscapeDataDto
@@ -194,9 +195,10 @@ const cy = cytoscape({
             selector: ".groupNode",
             style: {
                 "background-opacity": 0.05,
-                "border-width": 2,
-                "border-style": "dotted",
+                "border-width": 3,
+                "border-style": "solid",
                 "border-color": "#888",
+                "shape": "roundrectangle",
                 "label": "data(label)",
                 "font-size": 10,
                 "color": "#cccccc",
@@ -252,6 +254,7 @@ function buildInitialLayout() {
         applyArticulationPointVisibility();
         renderShapeSimilarityLegend();
 
+        applyGroupDepthStyles();
         updateRenderTime(renderStartedAt);
         if (pluginSettings.isGroupOnLoadEnabled) {
             mcollapseAllNodes();
@@ -833,6 +836,17 @@ function clearGroupOverlays() {
     overlay.innerHTML = "";
 }
 
+function groupDepth(group, allGroups) {
+    let depth = 0;
+    let cur = group;
+    while (cur.parent) {
+        cur = allGroups.find(g => g.id === cur.parent);
+        if (!cur) break;
+        depth++;
+    }
+    return depth;
+}
+
 function updateGroupOverlays() {
     const checkbox = document.getElementById("groupCheckbox");
 
@@ -881,6 +895,21 @@ function updateGroupOverlays() {
 
         groupBox.appendChild(label);
         overlay.appendChild(groupBox);
+    });
+}
+
+function applyGroupDepthStyles() {
+    const groups = report.groups || [];
+    if (groups.length === 0) return;
+
+    const maxDepth = Math.max(...groups.map(g => groupDepth(g, groups)));
+
+    groups.forEach(group => {
+        const node = cy.getElementById(group.id);
+        if (node.nonempty()) {
+            const alpha = (groupDepth(group, groups) + 1) / (maxDepth + 1);
+            node.style('border-opacity', alpha);
+        }
     });
 }
 

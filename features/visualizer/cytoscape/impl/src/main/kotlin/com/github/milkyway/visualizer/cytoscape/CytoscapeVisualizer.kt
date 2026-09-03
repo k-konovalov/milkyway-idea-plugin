@@ -91,32 +91,39 @@ class CytoscapeVisualizer(
             .distinct()
             .sortedBy { it.id }
 
-        val groups = modules
-            .groupBy { groupIdOf(it) }
-            .map { (groupId, nodes) ->
-                CytoscapeGroupDto(
-                    id = groupId,
-                    label = groupId,
-                    nodes = nodes.map { it.id }.sorted(),
-                )
-            }
-            .sortedBy { it.id }
+        val allGroupIds = modules
+            .flatMap { ancestorGroupIds(it.id) }
+            .distinct()
+            .sorted()
+
+        val groups = allGroupIds.map { groupId ->
+            val directLeaves = modules.filter { immediateParentOf(it.id) == groupId }.map { it.id }
+            val directSubGroups = allGroupIds.filter { immediateParentOf(it) == groupId }
+            CytoscapeGroupDto(
+                id = groupId,
+                label = groupId.substringAfterLast(":"),
+                nodes = (directLeaves + directSubGroups).sorted(),
+                parent = immediateParentOf(groupId),
+            )
+        }
 
         val groupElements = groups.map { group ->
             CytoscapeElementDto(
-                data = CytoscapeDataDto(id = group.id, label = group.label),
+                data = CytoscapeDataDto(
+                    id = group.id,
+                    label = group.label,
+                    parent = group.parent,
+                ),
                 classes = "groupNode",
             )
         }
 
         val nodes = modules.map { node ->
-            val groupId = groupIdOf(node)
             CytoscapeElementDto(
                 data = CytoscapeDataDto(
                     id = node.id,
                     label = node.label,
-                    group = groupId,
-                    parent = groupId,
+                    parent = immediateParentOf(node.id),
                     critical = node in criticalNodes,
                     isArticulationPoint = node in articulationPoints,
                 ),
@@ -163,7 +170,15 @@ class CytoscapeVisualizer(
         )
     }
 
-    private fun groupIdOf(node: Node): String = node.id.substringBefore(":")
+    private fun ancestorGroupIds(nodeId: String): List<String> {
+        val parts = nodeId.split(":")
+        return (1 until parts.size).map { parts.take(it).joinToString(":") }
+    }
+
+    private fun immediateParentOf(id: String): String? {
+        val i = id.lastIndexOf(":")
+        return if (i > 0) id.substring(0, i) else null
+    }
 
     private fun renderHtml(cytoscapeJson: String): String {
         val html = loadResource("/web/cytoscape.html")

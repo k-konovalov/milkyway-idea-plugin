@@ -44,7 +44,7 @@ class CompositeBuildPluginAndroidApp : Plugin<Project> {
                 }
             }
             target.extensions.getByType(KotlinAndroidProjectExtension::class.java).apply {
-                    jvmToolchain(23)
+                    jvmToolchain(21)
             }
             target.extensions.getByType(org.gradle.api.plugins.JavaPluginExtension::class.java).apply {
                 toolchain.languageVersion.set(org.gradle.jvm.toolchain.JavaLanguageVersion.of(23))
