@@ -195,9 +195,10 @@ const cy = cytoscape({
             selector: ".groupNode",
             style: {
                 "background-opacity": 0.05,
-                "border-width": 2,
-                "border-style": "dotted",
+                "border-width": 3,
+                "border-style": "solid",
                 "border-color": "#888",
+                "shape": "roundrectangle",
                 "label": "data(label)",
                 "font-size": 10,
                 "color": "#cccccc",
@@ -253,6 +254,7 @@ function buildInitialLayout() {
         applyArticulationPointVisibility();
         renderShapeSimilarityLegend();
 
+        applyGroupDepthStyles();
         updateRenderTime(renderStartedAt);
         if (pluginSettings.isGroupOnLoadEnabled) {
             mcollapseAllNodes();
@@ -834,6 +836,20 @@ function clearGroupOverlays() {
     overlay.innerHTML = "";
 }
 
+function nodeRenderedBBox(node) {
+    const pan = cy.pan();
+    const zoom = cy.zoom();
+    const pos = node.position();
+    const w = node.width();
+    const h = node.height();
+    return {
+        x1: (pos.x - w / 2) * zoom + pan.x,
+        y1: (pos.y - h / 2) * zoom + pan.y,
+        x2: (pos.x + w / 2) * zoom + pan.x,
+        y2: (pos.y + h / 2) * zoom + pan.y,
+    };
+}
+
 function groupDepth(group, allGroups) {
     let depth = 0;
     let cur = group;
@@ -861,13 +877,10 @@ function updateGroupOverlays() {
         : 0;
 
     groups.forEach(group => {
-        const boxes = group.nodes
+        const boxes = collectLeafNodeIds(group, groups)
             .map(nodeId => cy.getElementById(nodeId))
             .filter(node => node.nonempty())
-            .map(node => node.renderedBoundingBox({
-                includeLabels: true,
-                includeOverlays: false
-            }));
+            .map(node => nodeRenderedBBox(node));
 
         if (boxes.length === 0) {
             return;
@@ -901,6 +914,21 @@ function updateGroupOverlays() {
 
         groupBox.appendChild(label);
         overlay.appendChild(groupBox);
+    });
+}
+
+function applyGroupDepthStyles() {
+    const groups = report.groups || [];
+    if (groups.length === 0) return;
+
+    const maxDepth = Math.max(...groups.map(g => groupDepth(g, groups)));
+
+    groups.forEach(group => {
+        const node = cy.getElementById(group.id);
+        if (node.nonempty()) {
+            const alpha = (groupDepth(group, groups) + 1) / (maxDepth + 1);
+            node.style('border-opacity', alpha);
+        }
     });
 }
 
@@ -977,13 +1005,26 @@ function updateEdgeOverlays() {
     });
 }
 
+function collectLeafNodeIds(group, allGroups) {
+    const result = [];
+    group.nodes.forEach(nodeId => {
+        const subGroup = allGroups.find(g => g.id === nodeId);
+        if (subGroup) {
+            result.push(...collectLeafNodeIds(subGroup, allGroups));
+        } else {
+            result.push(nodeId);
+        }
+    });
+    return result;
+}
+
 function startGroupDrag(event, group) {
     event.preventDefault();
     event.stopPropagation();
 
     const nodePositions = new Map();
 
-    group.nodes.forEach(nodeId => {
+    collectLeafNodeIds(group, report.groups || []).forEach(nodeId => {
         const node = cy.getElementById(nodeId);
 
         if (node.nonempty()) {
