@@ -167,63 +167,6 @@ input[type="checkbox"] {
     box-sizing: border-box;
 }
 
-#groupOverlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-}
-
-#nodeLabelOverlay {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    pointer-events: none;
-}
-
-.groupBox {
-    position: absolute;
-    box-sizing: border-box;
-    border: 2px dotted rgba(180, 180, 180, 0.75);
-    border-radius: 8px;
-    background: rgba(120, 120, 120, 0.04);
-    pointer-events: auto;
-    cursor: move;
-    user-select: none;
-    -webkit-user-select: none;
-}
-
-.groupBoxLabel {
-    position: absolute;
-    top: -20px;
-    left: 8px;
-    padding: 2px 6px;
-    border-radius: 6px;
-    background: var(--panel-background);
-    color: #d8d8d8;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
-    pointer-events: none;
-}
-
-.edgeBoxLabel {
-    position: absolute;
-    top: -20px;
-    left: 8px;
-    padding: 2px 6px;
-    border-radius: 6px;
-    color: #d8d8d8;
-    font-size: 12px;
-    font-weight: 600;
-    white-space: nowrap;
-    user-select: none;
-    -webkit-user-select: none;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-}
 
 #performance {
     display: flex;
