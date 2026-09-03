@@ -43,6 +43,7 @@ data class CytoscapeGroupDto(
     val id: String,
     val label: String,
     val nodes: List<String>,
+    val parent: String? = null,
 )
 
 @Serializable

@@ -16,6 +16,7 @@
  * @property {String} id
  * @property {String} label
  * @property {String[]} nodes
+ * @property {?String} parent
  */
 /**
  * @typedef CytoscapeDataDto
@@ -833,6 +834,17 @@ function clearGroupOverlays() {
     overlay.innerHTML = "";
 }
 
+function groupDepth(group, allGroups) {
+    let depth = 0;
+    let cur = group;
+    while (cur.parent) {
+        cur = allGroups.find(g => g.id === cur.parent);
+        if (!cur) break;
+        depth++;
+    }
+    return depth;
+}
+
 function updateGroupOverlays() {
     const checkbox = document.getElementById("groupCheckbox");
 
@@ -844,6 +856,9 @@ function updateGroupOverlays() {
     overlay.innerHTML = "";
 
     const groups = report.groups || [];
+    const maxDepth = groups.length > 0
+        ? Math.max(...groups.map(g => groupDepth(g, groups)))
+        : 0;
 
     groups.forEach(group => {
         const boxes = group.nodes
@@ -863,6 +878,9 @@ function updateGroupOverlays() {
         const x2 = Math.max(...boxes.map(box => box.x2)) + GROUP_PADDING;
         const y2 = Math.max(...boxes.map(box => box.y2)) + GROUP_PADDING;
 
+        const depth = groupDepth(group, groups);
+        const alpha = (depth + 1) / (maxDepth + 1);
+
         const groupBox = document.createElement("div");
         groupBox.className = "groupBox";
         groupBox.dataset.groupId = group.id;
@@ -870,6 +888,8 @@ function updateGroupOverlays() {
         groupBox.style.top = `${y1}px`;
         groupBox.style.width = `${x2 - x1}px`;
         groupBox.style.height = `${y2 - y1}px`;
+        groupBox.style.borderColor = `rgba(180, 180, 180, ${alpha.toFixed(2)})`;
+        groupBox.style.zIndex = String(depth);
 
         groupBox.addEventListener("mousedown", event => {
             startGroupDrag(event, group);

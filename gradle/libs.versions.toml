@@ -10,7 +10,7 @@ slf4j = "2.0.17"
 # plugins
 changelog = "2.5.0"
 detekt = "1.23.7"
-intelliJPlatform = "2.16.0"
+intelliJPlatform = "2.18.0"
 kotlin = "2.1.21"
 kover = "0.9.7"
 pluginPublish = "2.0.0"
