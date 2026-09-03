@@ -33,7 +33,7 @@ class CompositeBuildPluginAndroidKmpLib : Plugin<Project> {
                     androidResources.enable = true
                 }
 
-                jvmToolchain(23)
+                jvmToolchain(21)
             }
 
             dependencies {
