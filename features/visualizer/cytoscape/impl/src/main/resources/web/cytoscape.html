@@ -10,8 +10,7 @@
 <body>
 <div id="toolbar">
     <button onclick="resetGraph()">Reset</button>
-    <button onclick="addCompound()">Compound</button>
-    <button onclick="collapseSelected()">Collapse</button>
+<button onclick="collapseSelected()">Collapse</button>
     <button onclick="expandSelected()">Expand</button>
     <button onclick="collapseEdgesBetweenNodes()">Collapse edges between nodes</button>
     <button onclick="expandEdgesBetweenNodes()">Expand edges between nodes</button>
@@ -25,21 +24,6 @@
     <label class="toolbarGroup">
         <input id="criticalPathCheckbox" type="checkbox" onchange="applyCriticalPathVisibility()">
         <span>Show critical path</span>
-    </label>
-
-    <label class="toolbarGroup">
-        <input id="groupCheckbox" type="checkbox" onchange="applyGroupVisibility()">
-        <span>Show groups</span>
-    </label>
-
-    <label class="toolbarGroup">
-        <input id="nodeLabelCheckbox" type="checkbox" onchange="applyNodeLabelVisibility()">
-        <span>Show node labels</span>
-    </label>
-
-    <label class="toolbarGroup">
-        <input id="edgeLabelCheckbox" type="checkbox" onchange="applyEdgeVisibility()">
-        <span>Show edge labels</span>
     </label>
 
     <label class="toolbarGroup">
@@ -125,9 +109,6 @@
 </div>
 
 <div id="cy"></div>
-<div id="groupOverlay"></div>
-<div id="nodeLabelOverlay"></div>
-<div id="edgeLabelOverlay"></div>
 
 <script>
     {{CYTOSCAPE_JS}}

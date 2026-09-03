@@ -63,7 +63,6 @@ document.getElementById("criticalPathLength").innerText = summary.criticalPathLe
 const FIT_PADDING = 80;
 
 let basePositions = null;
-let draggedGroup = null;
 
 const svgText = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '<svg version="1.1" xmlns="http://www.w3.org/2000/svg" width="512" height="512">\n' +
@@ -250,11 +249,8 @@ function buildInitialLayout() {
         applyCriticalPathVisibility();
         tuneLabelScale();
         fitStable();
-        updateGroupOverlays();
         applyArticulationPointVisibility();
         renderShapeSimilarityLegend();
-
-        applyGroupDepthStyles();
         updateRenderTime(renderStartedAt);
         if (pluginSettings.isGroupOnLoadEnabled) {
             mcollapseAllNodes();
@@ -295,54 +291,6 @@ function applyArticulationPointVisibility() {
         .addClass("articulationPointHighlight");
 }
 
-function getNewGroupIdCallback() {
-    let id = 1;
-    return function() {
-        return id++;
-    }
-}
-const getNewGroupId = getNewGroupIdCallback();
-
-function addParentNode(idSuffix, parent = undefined) {
-    const id = 'c' + idSuffix;
-    const parentNode = {
-        data: {
-            id: id,
-            label: `group[${idSuffix}]`
-        },
-        classes: 'groupNode',
-    };
-    cy.add(parentNode);
-    cy.$('#' + id).move({parent: parent});
-    return id;
-}
-
-function addCompound() {
-    const selectedElements = cy.elements(':selected');
-    if (selectedElements.length < 1) {
-        console.warn('No selected elements!', selectedElements);
-        return;
-    }
-    const parent = selectedElements[0].parent().id();
-    const nodesWithDifferentParent = selectedElements.filter(
-        selectedElement => selectedElement.parent().id() !== parent
-    );
-    const hasDifferentParent = nodesWithDifferentParent.nonempty();
-    console.log({
-        'parent': parent,
-        'nodeWithDifferentParent': nodesWithDifferentParent,
-        'hasDifferentParent': hasDifferentParent,
-    });
-    if (hasDifferentParent) {
-        console.warn('Selected nodes have different parent!')
-        return;
-    }
-    const id = getNewGroupId();
-    addParentNode(id, parent);
-    selectedElements.forEach(selectedElement => {
-        selectedElement.move({parent: 'c' + id})
-    });
-}
 
 function collapseSelected() {
     const selectedNodes = cy.nodes(':selected');
@@ -798,276 +746,6 @@ function normalizeGraphAspect() {
     });
 }
 
-const GROUP_PADDING = 24;
-
-function applyGroupVisibility() {
-    const enabled = document.getElementById("groupCheckbox").checked;
-
-    if (!enabled) {
-        clearGroupOverlays();
-        return;
-    }
-
-    updateGroupOverlays();
-}
-
-function applyNodeLabelVisibility() {
-    const enabled = document.getElementById("nodeLabelCheckbox").checked;
-
-    if (!enabled) {
-        clearNodeOverlays();
-        return;
-    }
-
-    updateNodeOverlays();
-}
-
-function applyEdgeVisibility() {
-    const enabled = document.getElementById('edgeLabelCheckbox').checked;
-    if (!enabled) {
-        clearEdgeOverlays();
-        return;
-    }
-    updateEdgeOverlays();
-}
-// region Overlay
-function clearGroupOverlays() {
-    const overlay = document.getElementById("groupOverlay");
-    overlay.innerHTML = "";
-}
-
-function groupDepth(group, allGroups) {
-    let depth = 0;
-    let cur = group;
-    while (cur.parent) {
-        cur = allGroups.find(g => g.id === cur.parent);
-        if (!cur) break;
-        depth++;
-    }
-    return depth;
-}
-
-function updateGroupOverlays() {
-    const checkbox = document.getElementById("groupCheckbox");
-
-    if (checkbox === null || !checkbox.checked) {
-        return;
-    }
-
-    const overlay = document.getElementById("groupOverlay");
-    overlay.innerHTML = "";
-
-    const groups = report.groups || [];
-
-    groups.forEach(group => {
-        const boxes = group.nodes
-            .map(nodeId => cy.getElementById(nodeId))
-            .filter(node => node.nonempty())
-            .map(node => node.renderedBoundingBox({
-                includeLabels: true,
-                includeOverlays: false
-            }));
-
-        if (boxes.length === 0) {
-            return;
-        }
-
-        const x1 = Math.min(...boxes.map(box => box.x1)) - GROUP_PADDING;
-        const y1 = Math.min(...boxes.map(box => box.y1)) - GROUP_PADDING;
-        const x2 = Math.max(...boxes.map(box => box.x2)) + GROUP_PADDING;
-        const y2 = Math.max(...boxes.map(box => box.y2)) + GROUP_PADDING;
-
-        const groupBox = document.createElement("div");
-        groupBox.className = "groupBox";
-        groupBox.dataset.groupId = group.id;
-        groupBox.style.left = `${x1}px`;
-        groupBox.style.top = `${y1}px`;
-        groupBox.style.width = `${x2 - x1}px`;
-        groupBox.style.height = `${y2 - y1}px`;
-
-        groupBox.addEventListener("mousedown", event => {
-            startGroupDrag(event, group);
-        });
-
-        const label = document.createElement("div");
-        label.className = "groupBoxLabel";
-        label.innerText = group.label || group.id;
-
-        groupBox.appendChild(label);
-        overlay.appendChild(groupBox);
-    });
-}
-
-function applyGroupDepthStyles() {
-    const groups = report.groups || [];
-    if (groups.length === 0) return;
-
-    const maxDepth = Math.max(...groups.map(g => groupDepth(g, groups)));
-
-    groups.forEach(group => {
-        const node = cy.getElementById(group.id);
-        if (node.nonempty()) {
-            const alpha = (groupDepth(group, groups) + 1) / (maxDepth + 1);
-            node.style('border-opacity', alpha);
-        }
-    });
-}
-
-function clearNodeOverlays() {
-    const nodeLabelOverlay = document.getElementById('nodeLabelOverlay');
-    nodeLabelOverlay.innerText = '';
-}
-
-function updateNodeOverlays() {
-    const checkboxEl = document.getElementById("nodeLabelCheckbox");
-    if (!checkboxEl.checked) {
-        return;
-    }
-    const overlayEl = document.getElementById('nodeLabelOverlay');
-    overlayEl.innerHTML = '';
-
-    let i = 0;
-    const nodes = cy.nodes(':visible');
-    console.log({'visible nodes': nodes});
-    nodes.forEach(node => {
-        if (node.isParent()) {
-            return;
-        }
-        const {x, y} = node.renderedPosition()
-        const nodeLabelEl = document.createElement('div');
-        nodeLabelEl.className = 'groupBoxLabel';
-        nodeLabelEl.style.left = `${x}px`;
-        nodeLabelEl.style.top = `${y}px`;
-        nodeLabelEl.innerText = node.data('label');
-        overlayEl.appendChild(nodeLabelEl);
-    });
-}
-
-function clearEdgeOverlays() {
-    const overlayEl = document.getElementById('edgeLabelOverlay');
-    overlayEl.innerHTML = '';
-}
-
-/**
- * @param {cytoscape.EdgeSingular} edge
- */
-function getEdgeLabel(edge) {
-    if (edge.hasClass('cy-expand-collapse-collapsed-edge')) {
-        const collapsed = edge.data('collapsedEdges');
-        return `(${collapsed.length})`;
-    }
-    return edge.data('label');
-}
-
-function updateEdgeOverlays() {
-    const checkboxEl = document.getElementById('edgeLabelCheckbox');
-    if (!checkboxEl.checked) {
-        return;
-    }
-    const overlayEl = document.getElementById('edgeLabelOverlay');
-    overlayEl.innerHTML = '';
-
-    const edges = cy.edges(':visible');
-    console.log({'edges': edges});
-    edges.forEach(edge => {
-        const label = getEdgeLabel(edge);
-        if (!label) {
-            return;
-        }
-        console.log({'edge label': label});
-        const {x, y} = edge.renderedMidpoint();
-        const edgeLabelEl = document.createElement('div');
-        edgeLabelEl.className = 'edgeBoxLabel';
-        edgeLabelEl.style.fontStyle = '4px'
-        edgeLabelEl.style.left = `${x}px`;
-        edgeLabelEl.style.top = `${y}px`;
-        edgeLabelEl.innerText = label;
-        overlayEl.appendChild(edgeLabelEl);
-    });
-}
-
-function startGroupDrag(event, group) {
-    event.preventDefault();
-    event.stopPropagation();
-
-    const nodePositions = new Map();
-
-    group.nodes.forEach(nodeId => {
-        const node = cy.getElementById(nodeId);
-
-        if (node.nonempty()) {
-            const position = node.position();
-
-            nodePositions.set(nodeId, {
-                x: position.x,
-                y: position.y
-            });
-        }
-    });
-
-    if (nodePositions.size === 0) {
-        return;
-    }
-
-    draggedGroup = {
-        group,
-        startClientX: event.clientX,
-        startClientY: event.clientY,
-        nodePositions
-    };
-
-    cy.userPanningEnabled(false);
-    cy.userZoomingEnabled(false);
-
-    document.addEventListener("mousemove", handleGroupDragMove);
-    document.addEventListener("mouseup", stopGroupDrag);
-}
-
-function handleGroupDragMove(event) {
-    if (draggedGroup === null) {
-        return;
-    }
-
-    event.preventDefault();
-
-    const dx = (event.clientX - draggedGroup.startClientX) / cy.zoom();
-    const dy = (event.clientY - draggedGroup.startClientY) / cy.zoom();
-
-    draggedGroup.nodePositions.forEach((startPosition, nodeId) => {
-        const node = cy.getElementById(nodeId);
-
-        if (node.nonempty()) {
-            node.position({
-                x: startPosition.x + dx,
-                y: startPosition.y + dy
-            });
-        }
-    });
-
-    updateGroupOverlays();
-}
-
-function stopGroupDrag() {
-    if (draggedGroup === null) {
-        return;
-    }
-
-    draggedGroup = null;
-
-    cy.userPanningEnabled(true);
-    cy.userZoomingEnabled(true);
-
-    document.removeEventListener("mousemove", handleGroupDragMove);
-    document.removeEventListener("mouseup", stopGroupDrag);
-
-    updateGroupOverlays();
-}
-
-cy.on("pan zoom render", () => {
-    updateGroupOverlays();
-    updateNodeOverlays();
-    updateEdgeOverlays();
-});
 
 cy.ready(() => {
     buildInitialLayout();
@@ -1075,9 +753,6 @@ cy.ready(() => {
 
 window.addEventListener("resize", () => {
     fitStable();
-    updateGroupOverlays();
-    updateNodeOverlays();
-    updateEdgeOverlays();
 });
 
 /**
