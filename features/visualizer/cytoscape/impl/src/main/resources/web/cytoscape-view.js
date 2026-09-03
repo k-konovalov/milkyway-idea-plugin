@@ -836,20 +836,6 @@ function clearGroupOverlays() {
     overlay.innerHTML = "";
 }
 
-function nodeRenderedBBox(node) {
-    const pan = cy.pan();
-    const zoom = cy.zoom();
-    const pos = node.position();
-    const w = node.width();
-    const h = node.height();
-    return {
-        x1: (pos.x - w / 2) * zoom + pan.x,
-        y1: (pos.y - h / 2) * zoom + pan.y,
-        x2: (pos.x + w / 2) * zoom + pan.x,
-        y2: (pos.y + h / 2) * zoom + pan.y,
-    };
-}
-
 function groupDepth(group, allGroups) {
     let depth = 0;
     let cur = group;
@@ -872,15 +858,15 @@ function updateGroupOverlays() {
     overlay.innerHTML = "";
 
     const groups = report.groups || [];
-    const maxDepth = groups.length > 0
-        ? Math.max(...groups.map(g => groupDepth(g, groups)))
-        : 0;
 
     groups.forEach(group => {
-        const boxes = collectLeafNodeIds(group, groups)
+        const boxes = group.nodes
             .map(nodeId => cy.getElementById(nodeId))
             .filter(node => node.nonempty())
-            .map(node => nodeRenderedBBox(node));
+            .map(node => node.renderedBoundingBox({
+                includeLabels: true,
+                includeOverlays: false
+            }));
 
         if (boxes.length === 0) {
             return;
@@ -891,9 +877,6 @@ function updateGroupOverlays() {
         const x2 = Math.max(...boxes.map(box => box.x2)) + GROUP_PADDING;
         const y2 = Math.max(...boxes.map(box => box.y2)) + GROUP_PADDING;
 
-        const depth = groupDepth(group, groups);
-        const alpha = (depth + 1) / (maxDepth + 1);
-
         const groupBox = document.createElement("div");
         groupBox.className = "groupBox";
         groupBox.dataset.groupId = group.id;
@@ -901,8 +884,6 @@ function updateGroupOverlays() {
         groupBox.style.top = `${y1}px`;
         groupBox.style.width = `${x2 - x1}px`;
         groupBox.style.height = `${y2 - y1}px`;
-        groupBox.style.borderColor = `rgba(180, 180, 180, ${alpha.toFixed(2)})`;
-        groupBox.style.zIndex = String(depth);
 
         groupBox.addEventListener("mousedown", event => {
             startGroupDrag(event, group);
@@ -1005,26 +986,13 @@ function updateEdgeOverlays() {
     });
 }
 
-function collectLeafNodeIds(group, allGroups) {
-    const result = [];
-    group.nodes.forEach(nodeId => {
-        const subGroup = allGroups.find(g => g.id === nodeId);
-        if (subGroup) {
-            result.push(...collectLeafNodeIds(subGroup, allGroups));
-        } else {
-            result.push(nodeId);
-        }
-    });
-    return result;
-}
-
 function startGroupDrag(event, group) {
     event.preventDefault();
     event.stopPropagation();
 
     const nodePositions = new Map();
 
-    collectLeafNodeIds(group, report.groups || []).forEach(nodeId => {
+    group.nodes.forEach(nodeId => {
         const node = cy.getElementById(nodeId);
 
         if (node.nonempty()) {
