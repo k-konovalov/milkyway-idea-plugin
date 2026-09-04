@@ -92,16 +92,6 @@ const svgText = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '</svg>\n';
 const svgUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
 
-const layoutOptions = {
-    name: "breadthfirst",
-    directed: true,
-    padding: 30,
-    spacingFactor: 1.7,
-    avoidOverlap: true,
-    nodeDimensionsIncludeLabels: false,
-    fit: false,
-    animate: false
-};
 
 let renderer = {}
 if (pluginSettings.isWebGlEnabled) {
@@ -239,6 +229,16 @@ const cy = cytoscape({
 // })
 
 function buildInitialLayout() {
+    const layoutOptions = {
+        name: "breadthfirst",
+        directed: true,
+        padding: 20,
+        spacingFactor: 1.0,
+        avoidOverlap: true,
+        nodeDimensionsIncludeLabels: false,
+        fit: false,
+        animate: false
+    };
     const layout = cy.layout(layoutOptions);
     const renderStartedAt = performance.now();
 
@@ -277,6 +277,7 @@ const ec = cy.expandCollapse({
 console.log({
     'ec': ec,
 });
+
 function applyArticulationPointVisibility() {
     const enabled = document.getElementById("articulationPointsCheckbox").checked;
 
@@ -758,13 +759,13 @@ window.addEventListener("resize", () => {
 /**
  * @param {Number} spacing
  */
-function applyKlayLayout(spacing) {
+function applyKlayLayout() {
     cy.layout({
         name: 'klay',
 
         klay: {
             direction: 'RIGHT',
-            spacing: spacing
+            spacing: 15
         },
 
         animate: false,
