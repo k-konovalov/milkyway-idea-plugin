@@ -756,18 +756,27 @@ window.addEventListener("resize", () => {
     fitStable();
 });
 
-/**
- * @param {Number} spacing
- */
 function applyKlayLayout() {
     cy.layout({
         name: 'klay',
 
         klay: {
-            direction: 'RIGHT',
+            direction: 'DOWN',
             spacing: 15
         },
 
+        animate: false,
+        fit: true,
+        padding: 40
+    }).run();
+}
+
+function applyDagreLayout() {
+    cy.layout({
+        name: 'dagre',
+        dagre: {
+            rankDir: 'TB' 
+        },
         animate: false,
         fit: true,
         padding: 40
