@@ -32,9 +32,12 @@ You can also build a standalone distributable JAR with all dependencies bundled:
 Then run it on any machine with Java 21+ without Gradle:
 
 ```bash
-java -jar cytoscape-preview-0.1.0-all.jar \
+java -Xmx2g -jar cytoscape-preview-0.1.0-all.jar \
   "path/to/your/gradle/project"
 ```
+
+> **Note:** For large projects, use `-Xmx2g` (or higher) to avoid `OutOfMemoryError`.
+> The `generateCytoscapeHtml` Gradle task already sets this automatically.
 
 ## Contribution
 Feel free for creating Issues and Pull Requests. See [CONTRIBUTE.md](CONTRIBUTE.md) for details

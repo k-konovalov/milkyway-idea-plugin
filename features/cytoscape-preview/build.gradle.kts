@@ -23,6 +23,7 @@ tasks.register<JavaExec>("generateCytoscapeHtml") {
     classpath = sourceSets["main"].runtimeClasspath
     mainClass.set("com.github.milkyway.tools.MainKt")
     workingDir = rootProject.projectDir
+    jvmArgs("-Xmx2g")
 
     val projectPath = providers.gradleProperty("projectPath")
     args(projectPath.getOrElse(""))
