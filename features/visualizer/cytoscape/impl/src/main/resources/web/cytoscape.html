@@ -8,6 +8,18 @@
     </style>
 </head>
 <body>
+<div id="progress-panel">
+    <div id="progress-header" onclick="toggleProgressPanel()">
+        <div id="progress-header-left">
+            <div id="progress-spinner"></div>
+            <span id="progress-title">Log</span>
+        </div>
+        <button id="progress-toggle" type="button">−</button>
+    </div>
+    <div id="progress-body">
+        <div id="progress-log"></div>
+    </div>
+</div>
 <div id="toolbar">
     <button onclick="resetGraph()">Reset</button>
 <button onclick="collapseSelected()">Collapse</button>

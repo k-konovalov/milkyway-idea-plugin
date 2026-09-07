@@ -55,6 +55,54 @@ const report = window.__MILKYWAY_REPORT__;
 const pluginSettings = report.cytoscapePluginSettings;
 console.log({'pluginSettings': pluginSettings});
 
+const __progressStart = performance.now();
+const __progressLogEl = document.getElementById("progress-log");
+const __progressTitleEl = document.getElementById("progress-title");
+const __progressSpinnerEl = document.getElementById("progress-spinner");
+const __progressBodyEl = document.getElementById("progress-body");
+
+/**
+ * @param {String} label
+ */
+function progressLog(label) {
+    const elapsed = ((performance.now() - __progressStart) / 1000).toFixed(2);
+    console.log(`[MilkyWay ${elapsed}s] ${label}`);
+
+    if (__progressLogEl !== null) {
+        const entry = document.createElement("div");
+        entry.className = "progress-entry";
+        entry.innerHTML = `<span class="progress-time">${elapsed}s</span><span class="progress-label">${label}</span>`;
+        __progressLogEl.appendChild(entry);
+        __progressLogEl.scrollTop = __progressLogEl.scrollHeight;
+    }
+}
+
+/**
+ * @param {String} label
+ */
+function progressStep(label) {
+    progressLog(label);
+}
+
+function toggleProgressPanel() {
+    if (__progressBodyEl !== null) {
+        __progressBodyEl.classList.toggle("collapsed");
+        const toggle = document.getElementById("progress-toggle");
+        if (toggle !== null) {
+            toggle.textContent = __progressBodyEl.classList.contains("collapsed") ? "+" : "−";
+        }
+    }
+}
+
+function finishProgress() {
+    if (__progressSpinnerEl !== null) {
+        __progressSpinnerEl.classList.add("done");
+    }
+}
+
+progressLog("Loading report data...");
+progressLog(`Loaded ${report.elements.length} elements (${report.summary.nodeCount} nodes, ${report.summary.edgeCount} edges)`);
+
 const summary = report.summary || {};
 document.getElementById("nodeCount").innerText = summary.nodeCount ?? "–";
 document.getElementById("edgeCount").innerText = summary.edgeCount ?? "–";
@@ -111,6 +159,7 @@ if (pluginSettings.isWebGlEnabled) {
     }
 }
 
+progressStep("Initializing Cytoscape...");
 const cy = cytoscape({
     container: document.getElementById("cy"),
     elements: report.elements,
@@ -229,6 +278,7 @@ const cy = cytoscape({
 // })
 
 function buildInitialLayout() {
+    progressStep("Computing layout (breadthfirst)...");
     const layoutOptions = {
         name: "breadthfirst",
         directed: true,
@@ -242,20 +292,40 @@ function buildInitialLayout() {
     const layout = cy.layout(layoutOptions);
     const renderStartedAt = performance.now();
 
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: breadthfirst layout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: breadthfirst positions computed");
+    });
+
     layout.on("layoutstop", () => {
+        progressLog("layoutstop: breadthfirst layout finished");
+        progressStep("Orienting roots...");
         orientRootsLeft();
+        progressStep("Normalizing aspect ratio...");
         normalizeGraphAspect();
+        progressStep("Saving base positions...");
         saveBasePositions();
+        progressStep("Applying critical path visibility...");
         applyCriticalPathVisibility();
+        progressStep("Tuning label scale...");
         tuneLabelScale();
+        progressStep("Fitting graph to viewport...");
         fitStable();
+        progressStep("Applying articulation point visibility...");
         applyArticulationPointVisibility();
+        progressStep("Rendering shape similarity legend...");
         renderShapeSimilarityLegend();
         updateRenderTime(renderStartedAt);
         if (pluginSettings.isGroupOnLoadEnabled) {
+            progressStep("Collapsing all nodes and edges...");
             mcollapseAllNodes();
             mcollapseAllEdges();
         }
+        progressStep("Graph is initialized");
+        finishProgress();
         console.log("Graph is initialized");
     });
 
@@ -351,18 +421,27 @@ function expandEdgesBetweenNodes() {
 }
 
 function mcollapseAllNodes() {
+    progressStep("Collapsing all nodes...");
+    const startedAt = performance.now();
     ec.collapseAll();
+    progressLog(`Collapse all nodes done (${Math.round(performance.now() - startedAt)} ms)`);
 }
 
 function mexpandAllNodes() {
+    progressStep("Expanding all nodes...");
+    const startedAt = performance.now();
     ec.expandAll();
+    progressLog(`Expand all nodes done (${Math.round(performance.now() - startedAt)} ms)`);
 }
 
 function mcollapseAllEdges() {
+    progressStep("Collapsing all edges...");
+    const startedAt = performance.now();
     ec.collapseAllEdges({
         groupEdgesOfSameTypeOnCollapse: false,
         allowNestedEdgeCollapse: true,
     })
+    progressLog(`Collapse all edges done (${Math.round(performance.now() - startedAt)} ms)`);
 }
 
 document.addEventListener('keydown', event => {
@@ -757,7 +836,9 @@ window.addEventListener("resize", () => {
 });
 
 function applyKlayLayout() {
-    cy.layout({
+    progressStep("Applying Klay layout...");
+    const startedAt = performance.now();
+    const layout = cy.layout({
         name: 'klay',
 
         klay: {
@@ -768,19 +849,49 @@ function applyKlayLayout() {
         animate: false,
         fit: true,
         padding: 40
-    }).run();
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: Klay layout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: Klay positions computed");
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: Klay layout finished (${Math.round(performance.now() - startedAt)} ms)`);
+    });
+
+    layout.run();
 }
 
 function applyDagreLayout() {
-    cy.layout({
+    progressStep("Applying Dagre layout...");
+    const startedAt = performance.now();
+    const layout = cy.layout({
         name: 'dagre',
         dagre: {
-            rankDir: 'TB' 
+            rankDir: 'TB'
         },
         animate: false,
         fit: true,
         padding: 40
-    }).run();
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: Dagre layout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: Dagre positions computed");
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: Dagre layout finished (${Math.round(performance.now() - startedAt)} ms)`);
+    });
+
+    layout.run();
 }
 
 // endregion

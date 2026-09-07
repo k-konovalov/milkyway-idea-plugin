@@ -235,3 +235,109 @@ input[type="checkbox"] {
 #renderMetrics *::selection {
     background: transparent;
 }
+
+#progress-panel {
+    position: absolute;
+    right: 12px;
+    bottom: 60px;
+    z-index: 9999;
+    min-width: 280px;
+    max-width: 420px;
+    border: 1px solid #555;
+    border-radius: 8px;
+    background: var(--panel-background);
+    color: var(--text-font-color);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+    overflow: hidden;
+}
+
+#progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    padding: 9px 12px;
+    border-bottom: 1px solid #444;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+#progress-header-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+#progress-title {
+    color: #eaeaea;
+}
+
+#progress-toggle {
+    border: none;
+    background: transparent;
+    color: var(--text-font-color);
+    font-size: 16px;
+    line-height: 1;
+    padding: 0;
+    pointer-events: none;
+}
+
+#progress-body {
+    padding: 10px 12px 12px 12px;
+    transition: max-height 0.2s ease, padding 0.2s ease, opacity 0.2s ease;
+    max-height: 300px;
+    overflow: hidden;
+}
+
+#progress-body.collapsed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+    border-top: none;
+}
+
+#progress-spinner {
+    width: 14px;
+    height: 14px;
+    border: 2px solid rgba(122, 162, 247, 0.2);
+    border-top-color: #7aa2f7;
+    border-radius: 50%;
+    animation: progress-spin 0.8s linear infinite;
+    flex-shrink: 0;
+}
+
+#progress-spinner.done {
+    animation: none;
+    border-color: #22c55e;
+    border-top-color: #22c55e;
+}
+
+@keyframes progress-spin {
+    to { transform: rotate(360deg); }
+}
+
+#progress-log {
+    font-family: monospace;
+    font-size: 12px;
+    color: #d6d6d6;
+    line-height: 1.6;
+    max-height: 250px;
+    overflow-y: auto;
+}
+
+.progress-entry {
+    margin: 2px 0;
+}
+
+.progress-entry .progress-time {
+    color: #7aa2f7;
+    margin-right: 8px;
+}
+
+.progress-entry .progress-label {
+    color: #eaeaea;
+}
