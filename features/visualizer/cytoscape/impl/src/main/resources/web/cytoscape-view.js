@@ -55,6 +55,54 @@ const report = window.__MILKYWAY_REPORT__;
 const pluginSettings = report.cytoscapePluginSettings;
 console.log({'pluginSettings': pluginSettings});
 
+const __progressStart = performance.now();
+const __progressLogEl = document.getElementById("progress-log");
+const __progressTitleEl = document.getElementById("progress-title");
+const __progressSpinnerEl = document.getElementById("progress-spinner");
+const __progressBodyEl = document.getElementById("progress-body");
+
+/**
+ * @param {String} label
+ */
+function progressLog(label) {
+    const elapsed = ((performance.now() - __progressStart) / 1000).toFixed(2);
+    console.log(`[MilkyWay ${elapsed}s] ${label}`);
+
+    if (__progressLogEl !== null) {
+        const entry = document.createElement("div");
+        entry.className = "progress-entry";
+        entry.innerHTML = `<span class="progress-time">${elapsed}s</span><span class="progress-label">${label}</span>`;
+        __progressLogEl.appendChild(entry);
+        __progressLogEl.scrollTop = __progressLogEl.scrollHeight;
+    }
+}
+
+/**
+ * @param {String} label
+ */
+function progressStep(label) {
+    progressLog(label);
+}
+
+function toggleProgressPanel() {
+    if (__progressBodyEl !== null) {
+        __progressBodyEl.classList.toggle("collapsed");
+        const toggle = document.getElementById("progress-toggle");
+        if (toggle !== null) {
+            toggle.textContent = __progressBodyEl.classList.contains("collapsed") ? "+" : "−";
+        }
+    }
+}
+
+function finishProgress() {
+    if (__progressSpinnerEl !== null) {
+        __progressSpinnerEl.classList.add("done");
+    }
+}
+
+progressLog("Loading report data...");
+progressLog(`Loaded ${report.elements.length} elements (${report.summary.nodeCount} nodes, ${report.summary.edgeCount} edges)`);
+
 const summary = report.summary || {};
 document.getElementById("nodeCount").innerText = summary.nodeCount ?? "–";
 document.getElementById("edgeCount").innerText = summary.edgeCount ?? "–";
@@ -92,16 +140,6 @@ const svgText = '<?xml version="1.0" encoding="UTF-8"?>\n' +
     '</svg>\n';
 const svgUri = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgText);
 
-const layoutOptions = {
-    name: "breadthfirst",
-    directed: true,
-    padding: 30,
-    spacingFactor: 1.7,
-    avoidOverlap: true,
-    nodeDimensionsIncludeLabels: false,
-    fit: false,
-    animate: false
-};
 
 let renderer = {}
 if (pluginSettings.isWebGlEnabled) {
@@ -121,6 +159,7 @@ if (pluginSettings.isWebGlEnabled) {
     }
 }
 
+progressStep("Initializing Cytoscape...");
 const cy = cytoscape({
     container: document.getElementById("cy"),
     elements: report.elements,
@@ -238,24 +277,61 @@ const cy = cytoscape({
 //     'ur': ur,
 // })
 
+// Listen for expand-collapse plugin cue button events
+cy.on("expandcollapse.afterexpand", (event) => {
+    const node = event.target;
+    relayoutKlaySubgraph(node);
+});
+
 function buildInitialLayout() {
+    progressStep("Computing layout (breadthfirst)...");
+    const layoutOptions = {
+        name: "breadthfirst",
+        directed: true,
+        padding: 20,
+        spacingFactor: 1.0,
+        avoidOverlap: true,
+        nodeDimensionsIncludeLabels: false,
+        fit: false,
+        animate: false
+    };
     const layout = cy.layout(layoutOptions);
     const renderStartedAt = performance.now();
 
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: breadthfirst layout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: breadthfirst positions computed");
+    });
+
     layout.on("layoutstop", () => {
+        progressLog("layoutstop: breadthfirst layout finished");
+        progressStep("Orienting roots...");
         orientRootsLeft();
+        progressStep("Normalizing aspect ratio...");
         normalizeGraphAspect();
+        progressStep("Saving base positions...");
         saveBasePositions();
+        progressStep("Applying critical path visibility...");
         applyCriticalPathVisibility();
+        progressStep("Tuning label scale...");
         tuneLabelScale();
+        progressStep("Fitting graph to viewport...");
         fitStable();
+        progressStep("Applying articulation point visibility...");
         applyArticulationPointVisibility();
+        progressStep("Rendering shape similarity legend...");
         renderShapeSimilarityLegend();
         updateRenderTime(renderStartedAt);
         if (pluginSettings.isGroupOnLoadEnabled) {
+            progressStep("Collapsing all nodes and edges...");
             mcollapseAllNodes();
             mcollapseAllEdges();
         }
+        progressStep("Graph is initialized");
+        finishProgress();
         console.log("Graph is initialized");
     });
 
@@ -277,6 +353,7 @@ const ec = cy.expandCollapse({
 console.log({
     'ec': ec,
 });
+
 function applyArticulationPointVisibility() {
     const enabled = document.getElementById("articulationPointsCheckbox").checked;
 
@@ -333,6 +410,13 @@ function expandSelected() {
     if (selectedEdges.length > 0) {
         ec.expandRecursively(selectedEdges);
     }
+
+    // Use subgraph layout when a single node is expanded; full layout for multiple
+    if (selectedNodes.length === 1) {
+        relayoutKlaySubgraph(selectedNodes[0]);
+    } else {
+        relayoutKlay();
+    }
 }
 
 function collapseEdgesBetweenNodes() {
@@ -347,21 +431,98 @@ function expandEdgesBetweenNodes() {
         groupEdgesOfSameTypeOnCollapse: false,
         allowNestedEdgeCollapse: true,
     });
+    relayoutKlay();
 }
 
 function mcollapseAllNodes() {
+    progressStep("Collapsing all nodes...");
+    const startedAt = performance.now();
     ec.collapseAll();
+    progressLog(`Collapse all nodes done (${Math.round(performance.now() - startedAt)} ms)`);
 }
 
 function mexpandAllNodes() {
+    progressStep("Expanding all nodes...");
+    const startedAt = performance.now();
     ec.expandAll();
+    progressLog(`Expand all nodes done (${Math.round(performance.now() - startedAt)} ms)`);
+    relayoutKlay();
+}
+
+function relayoutKlay() {
+    progressStep("Recomputing layout (klay)...");
+    const startedAt = performance.now();
+    const layout = cy.layout({
+        name: 'klay',
+        klay: {
+            direction: 'DOWN',
+            spacing: 15,
+        },
+        animate: false,
+        fit: true,
+        padding: 40
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: klay relayout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: klay relayout positions computed");
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: klay relayout finished (${Math.round(performance.now() - startedAt)} ms)`);
+        fitStable();
+    });
+
+    layout.run();
+}
+
+/**
+ * Runs klay layout only on the subgraph of the given node.
+ * @param {cytoscape.NodeSingular} node
+ */
+function relayoutKlaySubgraph(node) {
+    progressStep(`Recomputing subgraph layout (klay) for "${node.id()}"...`);
+    const startedAt = performance.now();
+
+    const subElements = node.descendants().union(node).union(node.connectedEdges());
+
+    const layout = subElements.layout({
+        name: 'klay',
+        klay: {
+            direction: 'DOWN',
+            spacing: 15,
+        },
+        animate: false,
+        fit: false,
+        padding: 20
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog(`layoutstart: klay subgraph relayout started for "${node.id()}"`);
+    });
+
+    layout.on("layoutready", () => {
+        progressLog(`layoutready: klay subgraph positions computed for "${node.id()}"`);
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: klay subgraph relayout finished for "${node.id()}" (${Math.round(performance.now() - startedAt)} ms)`);
+    });
+
+    layout.run();
 }
 
 function mcollapseAllEdges() {
+    progressStep("Collapsing all edges...");
+    const startedAt = performance.now();
     ec.collapseAllEdges({
         groupEdgesOfSameTypeOnCollapse: false,
         allowNestedEdgeCollapse: true,
     })
+    progressLog(`Collapse all edges done (${Math.round(performance.now() - startedAt)} ms)`);
 }
 
 document.addEventListener('keydown', event => {
@@ -755,22 +916,63 @@ window.addEventListener("resize", () => {
     fitStable();
 });
 
-/**
- * @param {Number} spacing
- */
-function applyKlayLayout(spacing) {
-    cy.layout({
+function applyKlayLayout() {
+    progressStep("Applying Klay layout...");
+    const startedAt = performance.now();
+    const layout = cy.layout({
         name: 'klay',
 
         klay: {
-            direction: 'RIGHT',
-            spacing: spacing
+            direction: 'DOWN',
+            spacing: 15
         },
 
         animate: false,
         fit: true,
         padding: 40
-    }).run();
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: Klay layout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: Klay positions computed");
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: Klay layout finished (${Math.round(performance.now() - startedAt)} ms)`);
+    });
+
+    layout.run();
+}
+
+function applyDagreLayout() {
+    progressStep("Applying Dagre layout...");
+    const startedAt = performance.now();
+    const layout = cy.layout({
+        name: 'dagre',
+        dagre: {
+            rankDir: 'TB',
+        },
+        animate: false,
+        fit: true,
+        padding: 40
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: Dagre layout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: Dagre positions computed");
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: Dagre layout finished (${Math.round(performance.now() - startedAt)} ms)`);
+    });
+
+    layout.run();
 }
 
 // endregion

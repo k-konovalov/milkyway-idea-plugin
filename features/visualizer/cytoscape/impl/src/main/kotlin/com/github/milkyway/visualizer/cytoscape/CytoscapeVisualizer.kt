@@ -189,6 +189,7 @@ class CytoscapeVisualizer(
         val klay = loadResource("/web/klay.js")
         val cyKlay = loadResource("/web/cytoscape-klay.js")
         val viewJs = loadResource("/web/cytoscape-view.js")
+        val cyDagre = loadResource("/web/cytoscape-dagre.min.js")
 
         val safeJson = cytoscapeJson.replace("</script>", "<\\/script>")
 
@@ -201,6 +202,7 @@ class CytoscapeVisualizer(
             .replace("{{CYTOSCAPE_UNDO_REDO_JS}}", cytoscapeUndoRedo)
             .replace("{{KLAY}}", klay)
             .replace("{{CYTOSCAPE_KLAY}}", cyKlay)
+            .replace("{{CYTOSCAPE_DAGRE}}", cyDagre)
     }
 
     private fun loadResource(path: String): String {

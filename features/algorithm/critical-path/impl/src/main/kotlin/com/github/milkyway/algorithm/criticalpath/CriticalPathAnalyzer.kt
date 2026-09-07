@@ -50,6 +50,27 @@ class CriticalPathAnalyzer : GraphAnalyzer<CriticalPathResult> {
         condensedGraph: CondensedGraph,
         originalGraph: DependencyGraph,
     ): CriticalPathResult {
+        val componentById = condensedGraph.components.associateBy { it.id }
+
+        val componentLabelCache = mutableMapOf<Int, String>()
+        fun componentLabel(id: Int): String =
+            componentLabelCache.getOrPut(id) {
+                componentById.getValue(id)
+                    .nodes
+                    .sortedBy { it.id }
+                    .joinToString("|") { it.id }
+            }
+
+        fun compareComponentsLexicographically(left: Int, right: Int): Int =
+            componentLabel(left).compareTo(componentLabel(right))
+
+        fun compareComponentPaths(left: Int?, right: Int?): Int {
+            if (left == null && right == null) return 0
+            if (left == null) return 1
+            if (right == null) return -1
+            return compareComponentsLexicographically(left, right)
+        }
+
         val dist = mutableMapOf<Int, Int>()
         val prev = mutableMapOf<Int, Int?>()
 
@@ -67,14 +88,14 @@ class CriticalPathAnalyzer : GraphAnalyzer<CriticalPathResult> {
 
             val neighbors = condensedGraph.adjacency[nodeId].orEmpty()
             val sortedNeighbors = neighbors.sortedWith { left, right ->
-                compareComponentsLexicographically(left, right, condensedGraph)
+                compareComponentsLexicographically(left, right)
             }
 
             for (neighborId in sortedNeighbors) {
                 val newDist = dist.getValue(nodeId) + 1
                 if (newDist > dist.getValue(neighborId) ||
                     (newDist == dist.getValue(neighborId) &&
-                            compareComponentPaths(nodeId, prev.getValue(neighborId), condensedGraph) < 0)
+                            compareComponentPaths(nodeId, prev.getValue(neighborId)) < 0)
                 ) {
                     dist[neighborId] = newDist
                     prev[neighborId] = nodeId
@@ -88,13 +109,16 @@ class CriticalPathAnalyzer : GraphAnalyzer<CriticalPathResult> {
             .filter { (_, d) -> d == longestPathLength }
             .map { (id, _) -> id }
             .sortedWith { left, right ->
-                compareComponentsLexicographically(left, right, condensedGraph)
+                compareComponentsLexicographically(left, right)
             }
+            .take(MAX_CRITICAL_PATHS)
 
         val componentPaths = endNodes.map { endNode ->
             val path = mutableListOf<Int>()
             var current: Int? = endNode
-            while (current != null) {
+            val visited = mutableSetOf<Int>()
+            while (current != null && current !in visited) {
+                visited.add(current)
                 path.add(current)
                 current = prev[current]
             }
@@ -103,7 +127,7 @@ class CriticalPathAnalyzer : GraphAnalyzer<CriticalPathResult> {
 
         val expandedPaths = componentPaths.map { path ->
             path.map { componentId ->
-                condensedGraph.components.first { it.id == componentId }.nodes
+                componentById.getValue(componentId).nodes
             }
         }
 
@@ -133,35 +157,9 @@ class CriticalPathAnalyzer : GraphAnalyzer<CriticalPathResult> {
         return result.reversed()
     }
 
-    private fun compareComponentPaths(
-        left: Int?,
-        right: Int?,
-        condensedGraph: CondensedGraph,
-    ): Int {
-        if (left == null && right == null) return 0
-        if (left == null) return 1
-        if (right == null) return -1
-        return compareComponentsLexicographically(left, right, condensedGraph)
-    }
-
-    private fun compareComponentsLexicographically(
-        left: Int,
-        right: Int,
-        condensedGraph: CondensedGraph,
-    ): Int {
-        fun componentLabel(id: Int): String {
-            return condensedGraph.components
-                .first { it.id == id }
-                .nodes
-                .sortedBy { it.id }
-                .joinToString("|") { it.id }
-        }
-
-        return componentLabel(left).compareTo(componentLabel(right))
-    }
-
     private companion object {
         const val INITIAL_PATH_LENGTH = 0
         const val UNREACHABLE_DISTANCE = -1
+        const val MAX_CRITICAL_PATHS = 50
     }
 }

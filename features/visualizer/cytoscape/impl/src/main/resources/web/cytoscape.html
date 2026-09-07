@@ -8,6 +8,18 @@
     </style>
 </head>
 <body>
+<div id="progress-panel">
+    <div id="progress-header" onclick="toggleProgressPanel()">
+        <div id="progress-header-left">
+            <div id="progress-spinner"></div>
+            <span id="progress-title">Log</span>
+        </div>
+        <button id="progress-toggle" type="button">−</button>
+    </div>
+    <div id="progress-body">
+        <div id="progress-log"></div>
+    </div>
+</div>
 <div id="toolbar">
     <button onclick="resetGraph()">Reset</button>
 <button onclick="collapseSelected()">Collapse</button>
@@ -16,7 +28,8 @@
     <button onclick="expandEdgesBetweenNodes()">Expand edges between nodes</button>
     <button onclick="mcollapseAllNodes()">Collapse all nodes</button>
     <button onclick="mcollapseAllEdges()">Collapse all edges</button>
-    <button onclick="applyKlayLayout(15)">Klay layout</button>
+    <button onclick="applyKlayLayout()">Klay layout</button>
+    <button onclick="applyDagreLayout()">Dagre layout</button>
 
     <button class="iconButton" title="Rotate left 90°" onclick="rotateGraph(-90)">↺</button>
     <button class="iconButton" title="Rotate right 90°" onclick="rotateGraph(90)">↻</button>
@@ -118,6 +131,9 @@
 </script>
 <script>
     {{CYTOSCAPE_KLAY}}
+</script>
+<script>
+    {{CYTOSCAPE_DAGRE}}
 </script>
 <script>
     {{CYTOSCAPE_EXPAND_COLLAPSE_JS}}
