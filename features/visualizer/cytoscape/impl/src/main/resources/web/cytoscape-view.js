@@ -277,6 +277,12 @@ const cy = cytoscape({
 //     'ur': ur,
 // })
 
+// Listen for expand-collapse plugin cue button events
+cy.on("expandcollapse.afterexpand", (event) => {
+    const node = event.target;
+    relayoutKlaySubgraph(node);
+});
+
 function buildInitialLayout() {
     progressStep("Computing layout (breadthfirst)...");
     const layoutOptions = {
@@ -404,6 +410,13 @@ function expandSelected() {
     if (selectedEdges.length > 0) {
         ec.expandRecursively(selectedEdges);
     }
+
+    // Use subgraph layout when a single node is expanded; full layout for multiple
+    if (selectedNodes.length === 1) {
+        relayoutKlaySubgraph(selectedNodes[0]);
+    } else {
+        relayoutKlay();
+    }
 }
 
 function collapseEdgesBetweenNodes() {
@@ -418,6 +431,7 @@ function expandEdgesBetweenNodes() {
         groupEdgesOfSameTypeOnCollapse: false,
         allowNestedEdgeCollapse: true,
     });
+    relayoutKlay();
 }
 
 function mcollapseAllNodes() {
@@ -432,6 +446,73 @@ function mexpandAllNodes() {
     const startedAt = performance.now();
     ec.expandAll();
     progressLog(`Expand all nodes done (${Math.round(performance.now() - startedAt)} ms)`);
+    relayoutKlay();
+}
+
+function relayoutKlay() {
+    progressStep("Recomputing layout (klay)...");
+    const startedAt = performance.now();
+    const layout = cy.layout({
+        name: 'klay',
+        klay: {
+            direction: 'DOWN',
+            spacing: 15,
+        },
+        animate: false,
+        fit: true,
+        padding: 40
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog("layoutstart: klay relayout started");
+    });
+
+    layout.on("layoutready", () => {
+        progressLog("layoutready: klay relayout positions computed");
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: klay relayout finished (${Math.round(performance.now() - startedAt)} ms)`);
+        fitStable();
+    });
+
+    layout.run();
+}
+
+/**
+ * Runs klay layout only on the subgraph of the given node.
+ * @param {cytoscape.NodeSingular} node
+ */
+function relayoutKlaySubgraph(node) {
+    progressStep(`Recomputing subgraph layout (klay) for "${node.id()}"...`);
+    const startedAt = performance.now();
+
+    const subElements = node.descendants().union(node).union(node.connectedEdges());
+
+    const layout = subElements.layout({
+        name: 'klay',
+        klay: {
+            direction: 'DOWN',
+            spacing: 15,
+        },
+        animate: false,
+        fit: false,
+        padding: 20
+    });
+
+    layout.on("layoutstart", () => {
+        progressLog(`layoutstart: klay subgraph relayout started for "${node.id()}"`);
+    });
+
+    layout.on("layoutready", () => {
+        progressLog(`layoutready: klay subgraph positions computed for "${node.id()}"`);
+    });
+
+    layout.on("layoutstop", () => {
+        progressLog(`layoutstop: klay subgraph relayout finished for "${node.id()}" (${Math.round(performance.now() - startedAt)} ms)`);
+    });
+
+    layout.run();
 }
 
 function mcollapseAllEdges() {
@@ -872,7 +953,7 @@ function applyDagreLayout() {
     const layout = cy.layout({
         name: 'dagre',
         dagre: {
-            rankDir: 'TB'
+            rankDir: 'TB',
         },
         animate: false,
         fit: true,
